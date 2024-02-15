@@ -1,0 +1,65 @@
+all:
+    vars:
+        ceph_fsid: "e2850e1f-7aab-472e-b6b1-824e19a75071"
+        ceph_monitors:
+          - 10.0.0.11
+          - 10.0.0.12
+          - 10.0.0.13
+        ceph_rbd_cache: "2048Mi"
+        ceph_rbd_cache_max: "1792Mi"
+        ceph_rbd_cache_target: "1536Mi"
+    children:
+        servers:
+            vars:
+                ceph_roles:
+                  - osd
+            hosts:
+                server01:
+                    ceph_roles:
+                      - mon
+                      - osd
+                    ceph_osd:
+                      - data: nvme-Samsung_SSD_980_PRO_1TB_123456
+                      - data: scsi-SATA_WDC_WD60EFRX-68M_WD-123456
+                server02:
+                    ceph_roles:
+                      - mon
+                      - osd
+                    ceph_osd:
+                      - data: nvme-Samsung_SSD_980_PRO_1TB_123456
+                      - data: scsi-SATA_WDC_WD60EFRX-68M_WD-123456
+                server03:
+                    ceph_roles:
+                      - mon
+                      - osd
+                    ceph_osd:
+                      - data: nvme-Samsung_SSD_980_PRO_1TB_123456
+                      - data: scsi-SATA_WDC_WD60EFRX-68M_WD-123456
+                server04:
+                    ceph_osd:
+                      - data: nvme-Samsung_SSD_980_PRO_1TB_123456
+                      - data: scsi-SATA_WDC_WD60EFRX-68M_WD-123456
+                server05:
+                    ceph_osd:
+                      - data: nvme-Samsung_SSD_980_PRO_1TB_123456
+                      - data: scsi-SATA_WDC_WD60EFRX-68M_WD-123456
+        containers:
+            hosts:
+                ceph-mgr01:
+                    ceph_roles:
+                      - mgr
+                ceph-mgr02:
+                    ceph_roles:
+                      - mgr
+                ceph-mgr03:
+                    ceph_roles:
+                      - mgr
+                ceph-rgw01:
+                    ceph_roles:
+                      - rgw
+                ceph-rgw02:
+                    ceph_roles:
+                      - rgw
+                ceph-rgw03:
+                    ceph_roles:
+                      - rgw
