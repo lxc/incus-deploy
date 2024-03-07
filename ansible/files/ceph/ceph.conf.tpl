@@ -5,8 +5,12 @@
 fsid = {{ task_ceph_fsid }}
 mon_initial_members = {{ names }}
 mon_host = {{ addresses }}
+{% if task_ceph_public_network %}
 public_network = {{ task_ceph_public_network }}
+{% endif %}
+{% if task_ceph_private_network %}
 private_network = {{ task_ceph_private_network }}
+{% endif %}
 
 [client]
 rbd_cache = true
