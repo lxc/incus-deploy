@@ -297,7 +297,6 @@
     - name: Bootstrap Ceph mon
       shell:
         cmd: sudo -u ceph ceph-mon --mkfs -i {{ inventory_hostname_short }} --monmap /var/lib/ceph/bootstrap-mon/ceph.monmap --keyring /var/lib/ceph/bootstrap-mon/ceph.keyring
-        warn: false
         creates: /var/lib/ceph/mon/ceph-{{ inventory_hostname_short }}/keyring
       when: '"mon" in task_ceph_roles'
 
@@ -318,7 +317,6 @@
 
     - name: Bootstrap Ceph OSD (stamp)
       shell:
-        warn: false
         cmd: touch /var/lib/ceph/osd/.{{ item.data }}.created
         creates: /var/lib/ceph/osd/.{{ item.data }}.created
       loop: '{{ task_ceph_osd }}'
@@ -336,7 +334,6 @@
     - name: Create Ceph mgr keyring
       shell:
         cmd: sudo -u ceph ceph auth get-or-create mgr.{{ inventory_hostname_short }} mon 'allow profile mgr' osd 'allow *' mds 'allow *' -o /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}/keyring
-        warn: false
         creates: /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}/keyring
       when: '"mgr" in task_ceph_roles'
 
@@ -359,7 +356,6 @@
     - name: Create Ceph mds keyring
       shell:
         cmd: sudo -u ceph ceph auth get-or-create mds.{{ inventory_hostname_short }} mon 'profile mds' mgr 'profile mds' mds 'allow *' osd 'allow *' -o /var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}/keyring
-        warn: false
         creates: /var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}/keyring
       when: '"mds" in task_ceph_roles'
 
@@ -382,7 +378,6 @@
     - name: Create Ceph rgw keyring
       shell:
         cmd: sudo -u ceph ceph auth get-or-create client.rgw.{{ inventory_hostname_short }} mon 'allow rw' osd 'allow rwx' -o /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}/keyring
-        warn: false
         creates: /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}/keyring
       when: '"rgw" in task_ceph_roles'
 
