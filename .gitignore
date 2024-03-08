@@ -1,0 +1,8 @@
+*.pyc
+
+ansible/data/*
+ansible/hosts.yaml
+
+*.tfstate
+*.tfstate.backup
+.terraform*
