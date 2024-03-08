@@ -306,7 +306,9 @@
         name: ceph-mon@{{ inventory_hostname_short }}
         state: started
       when: '"mon" in task_ceph_roles'
-      notify: Enable msgr2
+      notify:
+        - Enable msgr2
+        - Disable insecure_global_id_reclaim
 
     - name: Bootstrap Ceph OSD
       shell:
@@ -393,3 +395,8 @@
       run_once: true
       shell:
         cmd: ceph mon enable-msgr2
+
+    - name: Disable insecure_global_id_reclaim
+      run_once: true
+      shell:
+        cmd: ceph config set global auth_allow_insecure_global_id_reclaim false
