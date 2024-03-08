@@ -2,7 +2,7 @@
 - name: Ceph cluster keys and maps
   hosts: ceph
   order: shuffle
-  gather_facts: no
+  gather_facts: yes
   vars:
     task_ceph_fsid: "{{ ceph_fsid | default('') }}"
     task_ceph_monitors: "{{ lookup('template', '../files/ceph/ceph.monitors.tpl') | from_yaml | default([]) }}"
