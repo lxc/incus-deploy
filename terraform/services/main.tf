@@ -17,8 +17,8 @@ resource "incus_profile" "this" {
   description = "Profile to be used by the service containers"
 
   config = {
-    "limits.cpu"    = 1
-    "limits.memory" = "1GiB"
+    "limits.cpu"       = "1"
+    "limits.memory"    = "1GiB"
     "limits.processes" = "1000"
   }
 

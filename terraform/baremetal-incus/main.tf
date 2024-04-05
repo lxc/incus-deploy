@@ -17,7 +17,7 @@ resource "incus_profile" "this" {
   description = "Profile to be used by the cluster VMs"
 
   config = {
-    "limits.cpu"    = 4
+    "limits.cpu"    = "4"
     "limits.memory" = var.memory
   }
 
@@ -99,7 +99,7 @@ resource "incus_volume" "disk4" {
   pool         = var.storage_pool
   content_type = "block"
   config = {
-    "size" = "50GiB"
+    "size"            = "50GiB"
     "security.shared" = "true"
   }
 }
