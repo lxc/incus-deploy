@@ -1,14 +1,3 @@
-terraform {
-  required_providers {
-    incus = {
-      source = "lxc/incus"
-    }
-  }
-}
-
-provider "incus" {
-}
-
 variable "instance_names" {
   type    = set(string)
   default = ["server01", "server02", "server03", "server04", "server05"]
