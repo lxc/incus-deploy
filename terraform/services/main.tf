@@ -27,7 +27,7 @@ resource "incus_profile" "profile" {
     name = "root"
 
     properties = {
-      "pool" = "default"
+      "pool" = var.storage_pool
       "path" = "/"
     }
   }
@@ -49,7 +49,7 @@ resource "incus_instance" "instances" {
   project  = incus_project.project.name
   name     = each.value
   type     = "container"
-  image    = "images:ubuntu/22.04"
+  image    = var.image
   profiles = ["default", incus_profile.profile.name]
 
   lifecycle {

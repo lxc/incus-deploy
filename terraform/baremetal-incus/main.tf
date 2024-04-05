@@ -18,7 +18,7 @@ resource "incus_profile" "profile" {
 
   config = {
     "limits.cpu"    = 4
-    "limits.memory" = "4GiB"
+    "limits.memory" = var.memory
   }
 
   device {
@@ -26,7 +26,7 @@ resource "incus_profile" "profile" {
     name = "root"
 
     properties = {
-      "pool" = "default"
+      "pool" = var.storage_pool
       "path" = "/"
     }
   }
@@ -46,7 +46,7 @@ resource "incus_profile" "profile" {
     name = "disk4"
 
     properties = {
-      "pool"   = "default"
+      "pool"   = var.storage_pool
       "io.bus" = "nvme"
       "source" = incus_volume.disk4.name
     }
@@ -59,7 +59,7 @@ resource "incus_volume" "disk1" {
   project      = incus_project.project.name
   name         = "${each.value}-disk1"
   description  = "First CEPH OSD drive"
-  pool         = "default"
+  pool         = var.storage_pool
   content_type = "block"
   config = {
     "size" = "20GiB"
@@ -72,7 +72,7 @@ resource "incus_volume" "disk2" {
   project      = incus_project.project.name
   name         = "${each.value}-disk2"
   description  = "Second CEPH OSD drive"
-  pool         = "default"
+  pool         = var.storage_pool
   content_type = "block"
   config = {
     "size" = "20GiB"
@@ -85,7 +85,7 @@ resource "incus_volume" "disk3" {
   project      = incus_project.project.name
   name         = "${each.value}-disk3"
   description  = "Local storage drive"
-  pool         = "default"
+  pool         = var.storage_pool
   content_type = "block"
   config = {
     "size" = "50GiB"
@@ -96,7 +96,7 @@ resource "incus_volume" "disk4" {
   project      = incus_project.project.name
   name         = "shared-disk"
   description  = "Shared block storage"
-  pool         = "default"
+  pool         = var.storage_pool
   content_type = "block"
   config = {
     "size" = "50GiB"
@@ -109,7 +109,7 @@ resource "incus_instance" "instances" {
   project  = incus_project.project.name
   name     = each.value
   type     = "virtual-machine"
-  image    = "images:ubuntu/22.04"
+  image    = var.image
   profiles = ["default", incus_profile.profile.name]
 
   device {
@@ -117,7 +117,7 @@ resource "incus_instance" "instances" {
     name = "disk1"
 
     properties = {
-      "pool"   = "default"
+      "pool"   = var.storage_pool
       "io.bus" = "nvme"
       "source" = incus_volume.disk1[each.key].name
     }
@@ -128,7 +128,7 @@ resource "incus_instance" "instances" {
     name = "disk2"
 
     properties = {
-      "pool"   = "default"
+      "pool"   = var.storage_pool
       "io.bus" = "nvme"
       "source" = incus_volume.disk2[each.key].name
     }
@@ -139,7 +139,7 @@ resource "incus_instance" "instances" {
     name = "disk3"
 
     properties = {
-      "pool"   = "default"
+      "pool"   = var.storage_pool
       "io.bus" = "nvme"
       "source" = incus_volume.disk3[each.key].name
     }
