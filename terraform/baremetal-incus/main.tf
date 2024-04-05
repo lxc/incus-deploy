@@ -1,5 +1,5 @@
 resource "incus_project" "this" {
-  name        = "dev-incus-deploy"
+  name        = "baremetal"
   description = "Project used to test incus-deploy"
   config = {
     "features.images"          = false

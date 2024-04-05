@@ -1,5 +1,5 @@
 resource "incus_project" "this" {
-  name        = "dev-incus-deploy-services"
+  name        = "services"
   description = "Project used to test incus-deploy services"
   config = {
     "features.images"          = false
