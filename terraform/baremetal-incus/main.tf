@@ -149,4 +149,8 @@ resource "incus_instance" "instances" {
       "source" = incus_volume.disk3[each.key].name
     }
   }
+
+  lifecycle {
+    ignore_changes = [ running ]
+  }
 }

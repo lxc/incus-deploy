@@ -56,4 +56,8 @@ resource "incus_instance" "instances" {
   type     = "container"
   image    = "images:ubuntu/22.04"
   profiles = ["default", incus_profile.profile.name]
+
+  lifecycle {
+    ignore_changes = [ running ]
+  }
 }
