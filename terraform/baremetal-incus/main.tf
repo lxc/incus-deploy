@@ -1,5 +1,5 @@
 resource "incus_project" "this" {
-  name        = "baremetal"
+  name        = var.project_name
   description = "Project used to test incus-deploy"
   config = {
     "features.images"          = false
