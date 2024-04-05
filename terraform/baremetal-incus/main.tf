@@ -1,4 +1,4 @@
-resource "incus_project" "project" {
+resource "incus_project" "this" {
   name        = "dev-incus-deploy"
   description = "Project used to test incus-deploy"
   config = {
@@ -11,8 +11,8 @@ resource "incus_project" "project" {
   }
 }
 
-resource "incus_profile" "profile" {
-  project     = incus_project.project.name
+resource "incus_profile" "this" {
+  project     = incus_project.this.name
   name        = "cluster"
   description = "Profile to be used by the cluster VMs"
 
@@ -56,7 +56,7 @@ resource "incus_profile" "profile" {
 resource "incus_volume" "disk1" {
   for_each = var.instance_names
 
-  project      = incus_project.project.name
+  project      = incus_project.this.name
   name         = "${each.value}-disk1"
   description  = "First CEPH OSD drive"
   pool         = var.storage_pool
@@ -69,7 +69,7 @@ resource "incus_volume" "disk1" {
 resource "incus_volume" "disk2" {
   for_each = var.instance_names
 
-  project      = incus_project.project.name
+  project      = incus_project.this.name
   name         = "${each.value}-disk2"
   description  = "Second CEPH OSD drive"
   pool         = var.storage_pool
@@ -82,7 +82,7 @@ resource "incus_volume" "disk2" {
 resource "incus_volume" "disk3" {
   for_each = var.instance_names
 
-  project      = incus_project.project.name
+  project      = incus_project.this.name
   name         = "${each.value}-disk3"
   description  = "Local storage drive"
   pool         = var.storage_pool
@@ -93,7 +93,7 @@ resource "incus_volume" "disk3" {
 }
 
 resource "incus_volume" "disk4" {
-  project      = incus_project.project.name
+  project      = incus_project.this.name
   name         = "shared-disk"
   description  = "Shared block storage"
   pool         = var.storage_pool
@@ -106,11 +106,11 @@ resource "incus_volume" "disk4" {
 resource "incus_instance" "instances" {
   for_each = var.instance_names
 
-  project  = incus_project.project.name
+  project  = incus_project.this.name
   name     = each.value
   type     = "virtual-machine"
   image    = var.image
-  profiles = ["default", incus_profile.profile.name]
+  profiles = ["default", incus_profile.this.name]
 
   device {
     type = "disk"
