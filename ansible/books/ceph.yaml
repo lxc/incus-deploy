@@ -184,8 +184,8 @@
     task_ceph_fsid: "{{ ceph_fsid | default('') }}"
     task_ceph_keyrings: "{{ ceph_keyrings | default(['admin']) }}"
     task_ceph_monitors: "{{ lookup('template', '../files/ceph/ceph.monitors.tpl') | from_yaml | default([]) }}"
-    task_ceph_public_network: "{{ ceph_public_network | default('') }}"
-    task_ceph_private_network: "{{ ceph_private_network | default('') }}"
+    task_ceph_network_public: "{{ ceph_network_public | default('') }}"
+    task_ceph_network_private: "{{ ceph_network_private | default('') }}"
     task_ceph_roles: "{{ ceph_roles | default([]) }}"
     task_ceph_bootstrap_osd_keyring: ../data/ceph/cluster.{{ task_ceph_fsid }}.bootstrap-osd.keyring
     task_ceph_client_admin_keyring: ../data/ceph/cluster.{{ task_ceph_fsid }}.client.admin.keyring

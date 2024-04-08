@@ -5,11 +5,11 @@
 fsid = {{ task_ceph_fsid }}
 mon_initial_members = {{ names }}
 mon_host = {{ addresses }}
-{% if task_ceph_public_network %}
-public_network = {{ task_ceph_public_network }}
+{% if task_ceph_network_public %}
+public_network = {{ task_ceph_network_public }}
 {% endif %}
-{% if task_ceph_private_network %}
-private_network = {{ task_ceph_private_network }}
+{% if task_ceph_network_private %}
+private_network = {{ task_ceph_network_private }}
 {% endif %}
 
 [client]
