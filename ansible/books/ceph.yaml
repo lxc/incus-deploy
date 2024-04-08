@@ -291,8 +291,8 @@
   order: shuffle
   gather_facts: no
   vars:
+    task_ceph_disks: "{{ ceph_disks | default([]) }}"
     task_ceph_roles: "{{ ceph_roles | default([]) }}"
-    task_ceph_osd: "{{ ceph_osd | default([]) }}"
   tasks:
     - name: Bootstrap Ceph mon
       shell:
@@ -314,14 +314,14 @@
       shell:
         cmd: ceph-volume lvm create --data /dev/disk/by-id/{{ item.data }}{% if "db" in item %} --block.db /dev/disk/by-id/{{ item.db }}{% endif %}
         creates: /var/lib/ceph/osd/.{{ item.data }}.created
-      loop: '{{ task_ceph_osd }}'
+      loop: '{{ task_ceph_disks }}'
       when: '"osd" in task_ceph_roles'
 
     - name: Bootstrap Ceph OSD (stamp)
       shell:
         cmd: touch /var/lib/ceph/osd/.{{ item.data }}.created
         creates: /var/lib/ceph/osd/.{{ item.data }}.created
-      loop: '{{ task_ceph_osd }}'
+      loop: '{{ task_ceph_disks }}'
       when: '"osd" in task_ceph_roles'
 
     - name: Create /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}

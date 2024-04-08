@@ -22,29 +22,29 @@ all:
                   ceph_roles:
                     - mon
                     - osd
-                  ceph_osd:
+                  ceph_disks:
                     - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
                     - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
               server02:
                   ceph_roles:
                     - mon
                     - osd
-                  ceph_osd:
+                  ceph_disks:
                     - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
                     - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
               server03:
                   ceph_roles:
                     - mon
                     - osd
-                  ceph_osd:
+                  ceph_disks:
                     - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
                     - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
               server04:
-                  ceph_osd:
+                  ceph_disks:
                     - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
                     - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
               server05:
-                  ceph_osd:
+                  ceph_disks:
                     - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
                     - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
 
