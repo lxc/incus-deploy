@@ -3,19 +3,19 @@
 {% set names = monitors | map(attribute='name') | join(',') -%}
 # Managed by Ansible, do not modify.
 [global]
-fsid = {{ task_ceph_fsid }}
+fsid = {{ task_fsid }}
 mon_initial_members = {{ names }}
 mon_host = {{ addresses }}
-{% if task_ceph_network_public %}
-public_network = {{ task_ceph_network_public }}
+{% if task_network_public %}
+public_network = {{ task_network_public }}
 {% endif %}
-{% if task_ceph_network_private %}
-private_network = {{ task_ceph_network_private }}
+{% if task_network_private %}
+private_network = {{ task_network_private }}
 {% endif %}
 
 [client]
 rbd_cache = true
-rbd_cache_size = {{ task_ceph_rbd_cache }}
+rbd_cache_size = {{ task_rbd_cache }}
 rbd_cache_writethrough_until_flush = false
-rbd_cache_max_dirty = {{ task_ceph_rbd_cache_max }}
-rbd_cache_target_dirty = {{ task_ceph_rbd_cache_target }}
+rbd_cache_max_dirty = {{ task_rbd_cache_max }}
+rbd_cache_target_dirty = {{ task_rbd_cache_target }}

@@ -1,6 +1,6 @@
 # Managed by Ansible, do not modify.
 Types: deb
-URIs: https://download.ceph.com/debian-{{ task_ceph_release }}
+URIs: https://download.ceph.com/debian-{{ task_release }}
 Suites: {{ ansible_distribution_release }}
 Components: main
 Architectures: {{ dpkg_architecture.stdout }}
