@@ -5,6 +5,7 @@
    - `data`: Path to the disk, recommended to be a /dev/disk/by-id/ path (type: string)
    - `cache`: Path to a disk or partition to use for caching, recommended to be a /dev/disk/by-id/ path (type: string)
  - `ceph_fsid`: UUID of the Ceph cluster (use `uuidgen` or similar to generate) (**required**, type: string)
+ - `ceph_ip_address`: Override for the server's IP address (used to generate ceph.conf) (type: string)
  - `ceph_keyrings`: List of keyrings to deploy on the system (type: list of string, default: ["client"])
  - `ceph_network_private`: CIDR subnet of the backend network (type: string)
  - `ceph_network_public`: CIDR subnet of the consumer facing network (type: string)
