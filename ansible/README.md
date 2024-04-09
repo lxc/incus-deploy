@@ -14,6 +14,7 @@
  - `ceph_rbd_cache_target`: Ideal amount of memory used for librbd client request caching (type: string)
  - `ceph_release`: Ceph release to deploy, can be `distro` to use distribution version (type: string, default: `reef`)
  - `ceph_roles`: List of roles the server should have in the Ceph cluster (**required**, type: list of string):
+   - `client`: Ceph client, gets ceph.conf and keyring
    - `mds`: Ceph Metadata Server, used for exporting distributed filesystems (CephFS)
    - `mgr`: Ceph Manager server, used to process background management tasks and services
    - `mon`: Ceph Monitor server, provides the core Ceph API used by all other services
