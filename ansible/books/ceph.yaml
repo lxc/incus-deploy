@@ -189,7 +189,6 @@
     task_ceph_client_admin_keyring: ../data/ceph/cluster.{{ task_ceph_fsid }}.client.admin.keyring
     task_ceph_mon_keyring: ../data/ceph/cluster.{{ task_ceph_fsid }}.mon.keyring
     task_ceph_mon_map: ../data/ceph/cluster.{{ task_ceph_fsid }}.mon.map
-    task_ceph_memory_target: "{{ ceph_memory_target | default(2147483648) }}"
     task_ceph_rbd_cache: "{{ ceph_rbd_cache | default('128Mi') }}"
     task_ceph_rbd_cache_max: "{{ ceph_rbd_cache_max | default('96Mi') }}"
     task_ceph_rbd_cache_target: "{{ ceph_rbd_cache_target | default('64Mi') }}"
