@@ -1,5 +1,5 @@
 ---
-- name: Ceph cluster keys and maps
+- name: Ceph - Generate cluster keys and maps
   hosts: all
   order: shuffle
   gather_facts: yes
@@ -13,61 +13,57 @@
   tasks:
     - name: Generate mon keyring
       delegate_to: 127.0.0.1
-      run_once: true
       shell:
         cmd: ceph-authtool --create-keyring {{ task_mon_keyring }} --gen-key -n mon. --cap mon 'allow *'
         creates: '{{ task_mon_keyring }}'
-      when: '"mon" in task_roles'
+      throttle: 1
+      when: 'task_fsid'
 
     - name: Generate client.admin keyring
       delegate_to: 127.0.0.1
-      run_once: true
       shell:
         cmd: ceph-authtool --create-keyring {{ task_client_admin_keyring }} --gen-key -n client.admin --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'
         creates: '{{ task_client_admin_keyring }}'
-      when: '"mon" in task_roles'
-      notify: Add client.admin
+      throttle: 1
+      notify: Add key to client.admin keyring
+      when: 'task_fsid'
 
     - name: Generate bootstrap-osd keyring
       delegate_to: 127.0.0.1
-      run_once: true
       shell:
         cmd: ceph-authtool --create-keyring {{ task_bootstrap_osd_keyring }} --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd' --cap mgr 'allow r'
-
         creates: '{{ task_bootstrap_osd_keyring }}'
-      when: '"mon" in task_roles'
-      notify: Add bootstrap-osd
+      throttle: 1
+      notify: Add key to bootstrap-osd keyring
+      when: 'task_fsid'
 
     - name: Generate mon map
       delegate_to: 127.0.0.1
-      run_once: true
       shell:
         cmd: monmaptool --create --fsid {{ task_fsid }} {{ task_mon_map }}
         creates: '{{ task_mon_map }}'
-      when: '"mon" in task_roles'
+      throttle: 1
       notify: Add nodes to mon map
+      when: 'task_fsid'
 
   handlers:
-    - name: Add client.admin
+    - name: Add key to client.admin keyring
       delegate_to: 127.0.0.1
-      run_once: true
       shell:
         cmd: ceph-authtool {{ task_mon_keyring }} --import-keyring {{ task_client_admin_keyring }}
 
-    - name: Add bootstrap-osd
+    - name: Add key to bootstrap-osd keyring
       delegate_to: 127.0.0.1
-      run_once: true
       shell:
         cmd: ceph-authtool {{ task_mon_keyring }} --import-keyring {{ task_bootstrap_osd_keyring }}
 
     - name: Add nodes to mon map
       delegate_to: 127.0.0.1
-      run_once: true
       shell:
         cmd: monmaptool --add {{ item.name }} {{ item.ip }} {{ task_mon_map }}
       loop: "{{ lookup('template', '../files/ceph/ceph.monitors.tpl') | from_yaml | default([]) }}"
 
-- name: Add ceph repository
+- name: Ceph - Add package repository
   hosts: all
   order: shuffle
   gather_facts: yes
@@ -86,8 +82,8 @@
       copy:
         src: ../files/ceph/ceph.asc
         dest: /etc/apt/keyrings/ansible-ceph.asc
-      when: 'task_roles|length > 0 and task_release != "distro"'
       notify: Update apt
+      when: 'task_roles|length > 0 and task_release != "distro"'
 
     - name: Get DPKG architecture
       shell: dpkg --print-architecture
@@ -100,8 +96,8 @@
       template:
         src: ../files/ceph/ceph.sources.tpl
         dest: /etc/apt/sources.list.d/ansible-ceph.sources
-      when: 'task_roles|length > 0 and task_release != "distro"'
       notify: Update apt
+      when: 'task_roles|length > 0 and task_release != "distro"'
 
   handlers:
     - name: Update apt
@@ -110,7 +106,7 @@
         update_cache: yes
         cache_valid_time: 3600
 
-- name: Ceph installation
+- name: Ceph - Install packages
   hosts: all
   order: shuffle
   vars:
@@ -167,13 +163,6 @@
         state: present
       when: '"rbd-mirror" in task_roles'
 
-    - name: Enable ceph rbd-mirror
-      systemd:
-        enabled: yes
-        name: ceph-rbd-mirror@admin
-        state: started
-      when: '"rbd-mirror" in task_roles'
-
     - name: Install radosgw
       apt:
         name:
@@ -182,7 +171,7 @@
         state: present
       when: '"rgw" in task_roles'
 
-- name: Ceph configuration
+- name: Ceph - Set up config and keyrings
   hosts: all
   order: shuffle
   gather_facts: no
@@ -200,15 +189,14 @@
     task_rbd_cache_max: "{{ ceph_rbd_cache_max | default('96Mi') }}"
     task_rbd_cache_target: "{{ ceph_rbd_cache_target | default('64Mi') }}"
   tasks:
-    - name: Install Ceph config
+    - name: Transfer the cluster configuration
       template:
         src: ../files/ceph/ceph.conf.tpl
         dest: /etc/ceph/ceph.conf
-      when: '"client" in task_roles'
-      notify:
-        - Restart Ceph
+      notify: Restart Ceph
+      when: 'task_roles|length > 0'
 
-    - name: Create /var/lib/ceph
+    - name: Create main storage directory
       file:
         path: /var/lib/ceph
         owner: ceph
@@ -217,7 +205,7 @@
         state: directory
       when: 'task_roles|length > 1 or task_roles[0] != "client"'
 
-    - name: Create /var/lib/ceph/bootstrap-mon
+    - name: Create monitor bootstrap path
       file:
         path: /var/lib/ceph/bootstrap-mon
         owner: ceph
@@ -226,7 +214,7 @@
         state: directory
       when: '"mon" in task_roles'
 
-    - name: Create /var/lib/ceph/bootstrap-osd
+    - name: Create OSD bootstrap path
       file:
         path: /var/lib/ceph/bootstrap-osd
         owner: ceph
@@ -235,31 +223,28 @@
         state: directory
       when: '"osd" in task_roles'
 
-    - name: Install Ceph client admin keyring
+    - name: Transfer main admin keyring
       copy:
         src: '{{ task_client_admin_keyring }}'
         dest: /etc/ceph/ceph.client.admin.keyring
         owner: ceph
         group: ceph
         mode: 0660
-      when: '"client" in task_roles and "admin" in task_keyrings'
-      notify:
-        - Restart Ceph
+      notify: Restart Ceph
+      when: '("client" in task_roles and "admin" in task_keyrings) or "mon" in task_roles'
 
-    - name: Install additional Ceph client keyrings
+    - name: Transfer additional client keyrings
       copy:
         src: '../data/ceph/cluster.{{ task_fsid }}.client.{{ item }}.keyring'
         dest: '/etc/ceph/ceph.client.{{ item }}.keyring'
         owner: ceph
         group: ceph
         mode: 0660
-      when: '"client" in task_roles'
       with_items:
-        '{{ "client" in task_roles and task_keyrings | difference(["admin"]) }}'
-      notify:
-        - Restart Ceph
+        '{{ task_keyrings | difference(["admin"]) }}'
+      when: '"client" in task_roles'
 
-    - name: Install Ceph bootstrap MON keyring
+    - name: Transfer bootstrap mon keyring
       copy:
         src: '{{ task_mon_keyring }}'
         dest: /var/lib/ceph/bootstrap-mon/ceph.keyring
@@ -268,7 +253,7 @@
         mode: 0660
       when: '"mon" in task_roles'
 
-    - name: Install Ceph bootstrap MON map
+    - name: Transfer bootstrap mon map
       copy:
         src: '{{ task_mon_map }}'
         dest: /var/lib/ceph/bootstrap-mon/ceph.monmap
@@ -277,7 +262,7 @@
         mode: 0660
       when: '"mon" in task_roles'
 
-    - name: Install Ceph bootstrap OSD keyring
+    - name: Transfer bootstrap OSD keyring
       copy:
         src: '{{ task_bootstrap_osd_keyring }}'
         dest: /var/lib/ceph/bootstrap-osd/ceph.keyring
@@ -292,18 +277,21 @@
         name: ceph.target
         state: restarted
 
-- name: Ceph bootstrap
+- name: Ceph - Deploy mon
   hosts: all
   order: shuffle
-  gather_facts: no
+  gather_facts: yes
   vars:
-    task_disks: "{{ ceph_disks | default([]) }}"
+    task_fsid: "{{ ceph_fsid | default('') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
   tasks:
     - name: Bootstrap Ceph mon
       shell:
         cmd: sudo -u ceph ceph-mon --mkfs -i {{ inventory_hostname_short }} --monmap /var/lib/ceph/bootstrap-mon/ceph.monmap --keyring /var/lib/ceph/bootstrap-mon/ceph.keyring
         creates: /var/lib/ceph/mon/ceph-{{ inventory_hostname_short }}/keyring
+      notify:
+        - Enable msgr2
+        - Disable insecure_global_id_reclaim
       when: '"mon" in task_roles'
 
     - name: Enable and start Ceph mon
@@ -312,10 +300,25 @@
         name: ceph-mon@{{ inventory_hostname_short }}
         state: started
       when: '"mon" in task_roles'
-      notify:
-        - Enable msgr2
-        - Disable insecure_global_id_reclaim
 
+  handlers:
+    - name: Enable msgr2
+      shell:
+        cmd: ceph mon enable-msgr2
+
+    - name: Disable insecure_global_id_reclaim
+      shell:
+        cmd: ceph config set global auth_allow_insecure_global_id_reclaim false
+
+- name: Ceph - Deploy osd
+  hosts: all
+  order: shuffle
+  gather_facts: yes
+  vars:
+    task_disks: "{{ ceph_disks | default([]) }}"
+    task_fsid: "{{ ceph_fsid | default('') }}"
+    task_roles: "{{ ceph_roles | default([]) }}"
+  tasks:
     - name: Bootstrap Ceph OSD
       shell:
         cmd: ceph-volume lvm create --data /dev/disk/by-id/{{ item.data }}{% if "db" in item %} --block.db /dev/disk/by-id/{{ item.db }}{% endif %}
@@ -330,6 +333,14 @@
       loop: '{{ task_disks }}'
       when: '"osd" in task_roles'
 
+- name: Ceph - Deploy mgr
+  hosts: all
+  order: shuffle
+  gather_facts: yes
+  vars:
+    task_fsid: "{{ ceph_fsid | default('') }}"
+    task_roles: "{{ ceph_roles | default([]) }}"
+  tasks:
     - name: Create /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}
       file:
         path: /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}
@@ -337,13 +348,24 @@
         group: ceph
         mode: 0770
         state: directory
+      register: deploy_mgr
       when: '"mgr" in task_roles'
 
-    - name: Create Ceph mgr keyring
+    - name: Create mgr keyring
+      delegate_to: "{{ lookup('template', '../files/ceph/ceph.monitors.names.tpl') | from_yaml | first }}"
       shell:
-        cmd: sudo -u ceph ceph auth get-or-create mgr.{{ inventory_hostname_short }} mon 'allow profile mgr' osd 'allow *' mds 'allow *' -o /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}/keyring
-        creates: /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}/keyring
-      when: '"mgr" in task_roles'
+        cmd: ceph auth get-or-create mgr.{{ inventory_hostname_short }} mon 'allow profile mgr' osd 'allow *' mds 'allow *'
+      register: mgr_keyring
+      when: '"mgr" in task_roles and deploy_mgr.changed'
+
+    - name: Transfer mgr keyring
+      copy:
+        content: "{{ mgr_keyring.stdout }}\n"
+        dest: "/var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}/keyring"
+        owner: ceph
+        group: ceph
+        mode: 0660
+      when: '"mgr" in task_roles and deploy_mgr.changed'
 
     - name: Enable ceph mgr
       systemd:
@@ -352,6 +374,14 @@
         state: started
       when: '"mgr" in task_roles'
 
+- name: Ceph - Deploy mds
+  hosts: all
+  order: shuffle
+  gather_facts: yes
+  vars:
+    task_fsid: "{{ ceph_fsid | default('') }}"
+    task_roles: "{{ ceph_roles | default([]) }}"
+  tasks:
     - name: Create /var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}
       file:
         path: /var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}
@@ -359,13 +389,24 @@
         group: ceph
         mode: 0770
         state: directory
+      register: deploy_mds
       when: '"mds" in task_roles'
 
-    - name: Create Ceph mds keyring
+    - name: Create mds keyring
+      delegate_to: "{{ lookup('template', '../files/ceph/ceph.monitors.names.tpl') | from_yaml | first }}"
       shell:
-        cmd: sudo -u ceph ceph auth get-or-create mds.{{ inventory_hostname_short }} mon 'profile mds' mgr 'profile mds' mds 'allow *' osd 'allow *' -o /var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}/keyring
-        creates: /var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}/keyring
-      when: '"mds" in task_roles'
+        cmd: ceph auth get-or-create mds.{{ inventory_hostname_short }} mon 'profile mds' mgr 'profile mds' mds 'allow *' osd 'allow *'
+      register: mds_keyring
+      when: '"mds" in task_roles and deploy_mds.changed'
+
+    - name: Transfer mds keyring
+      copy:
+        content: "{{ mds_keyring.stdout }}\n"
+        dest: "/var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}/keyring"
+        owner: ceph
+        group: ceph
+        mode: 0660
+      when: '"mds" in task_roles and deploy_mds.changed'
 
     - name: Enable ceph mds
       systemd:
@@ -374,6 +415,14 @@
         state: started
       when: '"mds" in task_roles'
 
+- name: Ceph - Deploy rgw
+  hosts: all
+  order: shuffle
+  gather_facts: yes
+  vars:
+    task_fsid: "{{ ceph_fsid | default('') }}"
+    task_roles: "{{ ceph_roles | default([]) }}"
+  tasks:
     - name: Create /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}
       file:
         path: /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}
@@ -381,13 +430,24 @@
         group: ceph
         mode: 0770
         state: directory
+      register: deploy_rgw
       when: '"rgw" in task_roles'
 
     - name: Create Ceph rgw keyring
+      delegate_to: "{{ lookup('template', '../files/ceph/ceph.monitors.names.tpl') | from_yaml | first }}"
       shell:
-        cmd: sudo -u ceph ceph auth get-or-create client.rgw.{{ inventory_hostname_short }} mon 'allow rw' osd 'allow rwx' -o /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}/keyring
-        creates: /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}/keyring
-      when: '"rgw" in task_roles'
+        cmd: ceph auth get-or-create client.rgw.{{ inventory_hostname_short }} mon 'allow rw' osd 'allow rwx'
+      register: rgw_keyring
+      when: '"rgw" in task_roles and deploy_rgw.changed'
+
+    - name: Transfer rgw keyring
+      copy:
+        content: "{{ rgw_keyring.stdout }}\n"
+        dest: "/var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}/keyring"
+        owner: ceph
+        group: ceph
+        mode: 0660
+      when: '"rgw" in task_roles and deploy_rgw.changed'
 
     - name: Enable ceph rgw
       systemd:
@@ -396,13 +456,17 @@
         state: started
       when: '"rgw" in task_roles'
 
-  handlers:
-    - name: Enable msgr2
-      run_once: true
-      shell:
-        cmd: ceph mon enable-msgr2
-
-    - name: Disable insecure_global_id_reclaim
-      run_once: true
-      shell:
-        cmd: ceph config set global auth_allow_insecure_global_id_reclaim false
+- name: Ceph - Deploy rbd-mirror
+  hosts: all
+  order: shuffle
+  gather_facts: yes
+  vars:
+    task_fsid: "{{ ceph_fsid | default('') }}"
+    task_roles: "{{ ceph_roles | default([]) }}"
+  tasks:
+    - name: Enable ceph rbd-mirror
+      systemd:
+        enabled: yes
+        name: ceph-rbd-mirror@admin
+        state: started
+      when: '"rbd-mirror" in task_roles'
