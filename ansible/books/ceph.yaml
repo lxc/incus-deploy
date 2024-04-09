@@ -1,6 +1,6 @@
 ---
 - name: Ceph cluster keys and maps
-  hosts: ceph
+  hosts: all
   order: shuffle
   gather_facts: yes
   vars:
@@ -9,6 +9,7 @@
     task_client_admin_keyring: ../data/ceph/cluster.{{ task_fsid }}.client.admin.keyring
     task_mon_keyring: ../data/ceph/cluster.{{ task_fsid }}.mon.keyring
     task_mon_map: ../data/ceph/cluster.{{ task_fsid }}.mon.map
+    task_roles: "{{ ceph_roles | default([]) }}"
   tasks:
     - name: Generate mon keyring
       delegate_to: 127.0.0.1
@@ -16,6 +17,7 @@
       shell:
         cmd: ceph-authtool --create-keyring {{ task_mon_keyring }} --gen-key -n mon. --cap mon 'allow *'
         creates: '{{ task_mon_keyring }}'
+      when: '"mon" in task_roles'
 
     - name: Generate client.admin keyring
       delegate_to: 127.0.0.1
@@ -23,6 +25,7 @@
       shell:
         cmd: ceph-authtool --create-keyring {{ task_client_admin_keyring }} --gen-key -n client.admin --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'
         creates: '{{ task_client_admin_keyring }}'
+      when: '"mon" in task_roles'
       notify: Add client.admin
 
     - name: Generate bootstrap-osd keyring
@@ -32,6 +35,7 @@
         cmd: ceph-authtool --create-keyring {{ task_bootstrap_osd_keyring }} --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd' --cap mgr 'allow r'
 
         creates: '{{ task_bootstrap_osd_keyring }}'
+      when: '"mon" in task_roles'
       notify: Add bootstrap-osd
 
     - name: Generate mon map
@@ -40,6 +44,7 @@
       shell:
         cmd: monmaptool --create --fsid {{ task_fsid }} {{ task_mon_map }}
         creates: '{{ task_mon_map }}'
+      when: '"mon" in task_roles'
       notify: Add nodes to mon map
 
   handlers:
@@ -63,24 +68,25 @@
       loop: "{{ lookup('template', '../files/ceph/ceph.monitors.tpl') | from_yaml | default([]) }}"
 
 - name: Add ceph repository
-  hosts: ceph
+  hosts: all
   order: shuffle
   gather_facts: yes
   vars:
     task_release: "{{ ceph_release | default('reef') }}"
+    task_roles: "{{ ceph_roles | default([]) }}"
   tasks:
     - name: Create apt keyring path
       file:
         path: /etc/apt/keyrings/
         mode: 0755
         state: directory
-      when: 'task_release != "distro"'
+      when: 'task_roles|length > 0 and task_release != "distro"'
 
     - name: Add ceph GPG key
       copy:
         src: ../files/ceph/ceph.asc
         dest: /etc/apt/keyrings/ansible-ceph.asc
-      when: 'task_release != "distro"'
+      when: 'task_roles|length > 0 and task_release != "distro"'
       notify: Update apt
 
     - name: Get DPKG architecture
@@ -88,13 +94,13 @@
       register: dpkg_architecture
       changed_when: false
       check_mode: no
-      when: 'task_release != "distro"'
+      when: 'task_roles|length > 0 and task_release != "distro"'
 
     - name: Add ceph package sources
       template:
         src: ../files/ceph/ceph.sources.tpl
         dest: /etc/apt/sources.list.d/ansible-ceph.sources
-      when: 'task_release != "distro"'
+      when: 'task_roles|length > 0 and task_release != "distro"'
       notify: Update apt
 
   handlers:
@@ -105,7 +111,7 @@
         cache_valid_time: 3600
 
 - name: Ceph installation
-  hosts: ceph
+  hosts: all
   order: shuffle
   vars:
     task_roles: "{{ ceph_roles | default([]) }}"
@@ -116,6 +122,7 @@
           - ceph-common
         install_recommends: no
         state: present
+      when: '"client" in task_roles'
 
     - name: Install ceph-mon
       apt:
@@ -176,7 +183,7 @@
       when: '"rgw" in task_roles'
 
 - name: Ceph configuration
-  hosts: ceph
+  hosts: all
   order: shuffle
   gather_facts: no
   vars:
@@ -197,6 +204,7 @@
       template:
         src: ../files/ceph/ceph.conf.tpl
         dest: /etc/ceph/ceph.conf
+      when: '"client" in task_roles'
       notify:
         - Restart Ceph
 
@@ -234,7 +242,7 @@
         owner: ceph
         group: ceph
         mode: 0660
-      when: '"admin" in task_keyrings'
+      when: '"client" in task_roles and "admin" in task_keyrings'
       notify:
         - Restart Ceph
 
@@ -247,7 +255,7 @@
         mode: 0660
       when: '"client" in task_roles'
       with_items:
-        '{{ task_keyrings | difference(["admin"]) }}'
+        '{{ "client" in task_roles and task_keyrings | difference(["admin"]) }}'
       notify:
         - Restart Ceph
 
@@ -285,7 +293,7 @@
         state: restarted
 
 - name: Ceph bootstrap
-  hosts: ceph
+  hosts: all
   order: shuffle
   gather_facts: no
   vars:
