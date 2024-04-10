@@ -1,109 +1,70 @@
 all:
-    vars:
-        ceph_fsid: "e2850e1f-7aab-472e-b6b1-824e19a75071"
-        ceph_rbd_cache: "2048Mi"
-        ceph_rbd_cache_max: "1792Mi"
-        ceph_rbd_cache_target: "1536Mi"
-    children:
-      servers:
-        children:
-          baremetal:
-            vars:
-              ansible_connection: incus
-              ansible_incus_remote: local
-              ansible_user: root
-              ansible_become: no
-              ansible_incus_project: dev-incus-deploy
-
-              ceph_roles:
-                - osd
-            hosts:
-              server01:
-                  ceph_roles:
-                    - mon
-                    - osd
-                  ceph_disks:
-                    - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
-                    - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
-              server02:
-                  ceph_roles:
-                    - mon
-                    - osd
-                  ceph_disks:
-                    - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
-                    - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
-              server03:
-                  ceph_roles:
-                    - mon
-                    - osd
-                  ceph_disks:
-                    - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
-                    - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
-              server04:
-                  ceph_disks:
-                    - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
-                    - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
-              server05:
-                  ceph_disks:
-                    - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
-                    - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
-
-          containers:
-            vars:
-              ansible_connection: incus
-              ansible_incus_remote: local
-              ansible_user: root
-              ansible_become: no
-              ansible_incus_project: dev-incus-deploy-services
-
-              ceph_roles:
-                - osd
-            hosts:
-              ceph-mds01:
-                  ceph_roles:
-                    - mds
-              ceph-mds02:
-                  ceph_roles:
-                    - mds
-              ceph-mds03:
-                  ceph_roles:
-                    - mds
-
-              ceph-mgr01:
-                  ceph_roles:
-                    - mgr
-              ceph-mgr02:
-                  ceph_roles:
-                    - mgr
-              ceph-mgr03:
-                  ceph_roles:
-                    - mgr
-
-              ceph-rgw01:
-                  ceph_roles:
-                    - rgw
-              ceph-rgw02:
-                  ceph_roles:
-                    - rgw
-              ceph-rgw03:
-                  ceph_roles:
-                    - rgw
-
-      services:
-        children:
-          ceph:
-            hosts:
-              server01:
-              server02:
-              server03:
-              server04:
-              server05:
-              ceph-mgr01:
-              ceph-mgr02:
-              ceph-mgr03:
-              ceph-mds01:
-              ceph-mds02:
-              ceph-mds03:
-              ceph-rgw01:
-              ceph-rgw02:
-              ceph-rgw03:
+  vars:
+    ceph_fsid: "e2850e1f-7aab-472e-b6b1-824e19a75071"
+    ceph_rbd_cache: "2048Mi"
+    ceph_rbd_cache_max: "1792Mi"
+    ceph_rbd_cache_target: "1536Mi"
+    ovn_name: "baremetal"
+  children:
+    baremetal:
+      vars:
+        ansible_connection: incus
+        ansible_incus_remote: local
+        ansible_user: root
+        ansible_become: no
+        ansible_incus_project: dev-incus-deploy
+        ceph_roles:
+          - osd
+        ovn_roles:
+          - host
+      hosts:
+        server01:
+          ceph_roles:
+            - mon
+            - mds
+            - mgr
+            - osd
+          ceph_disks:
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+          ovn_roles:
+            - central
+            - host
+        server02:
+          ceph_roles:
+            - mon
+            - mds
+            - mgr
+            - osd
+          ceph_disks:
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+          ovn_roles:
+            - central
+            - host
+        server03:
+          ceph_roles:
+            - mon
+            - mds
+            - mgr
+            - osd
+          ceph_disks:
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+          ovn_roles:
+            - central
+            - host
+        server04:
+          ceph_disks:
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+          ceph_roles:
+            - osd
+            - rgw
+        server05:
+          ceph_disks:
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+          ceph_roles:
+            - osd
+            - rgw
