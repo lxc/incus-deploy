@@ -1,6 +1,6 @@
 {% set monitors = lookup('template', '../files/ceph/ceph.monitors.tpl') | from_yaml | default([]) %}
-{% set addresses = monitors | map(attribute='ip') | map('regex_replace', '^(.*)$', '[\\1]:6789') | join(',') -%}
-{% set names = monitors | map(attribute='name') | join(',') -%}
+{% set addresses = monitors | map(attribute='ip') | map('regex_replace', '^(.*)$', '[\\1]:6789') | sort | join(',') -%}
+{% set names = monitors | map(attribute='name') | sort | join(',') -%}
 # Managed by Ansible, do not modify.
 [global]
 fsid = {{ task_fsid }}
