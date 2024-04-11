@@ -15,6 +15,9 @@ all:
         ansible_incus_project: dev-incus-deploy
         ceph_roles:
           - osd
+        incus_roles:
+          - cluster
+          - ui
         ovn_roles:
           - host
       hosts:
