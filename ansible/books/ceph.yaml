@@ -104,7 +104,7 @@
       apt:
         force_apt_get: yes
         update_cache: yes
-        cache_valid_time: 3600
+        cache_valid_time: 0
 
 - name: Ceph - Install packages
   hosts: all
