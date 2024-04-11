@@ -4,10 +4,13 @@ This is a collection of Ansible playbooks, Terraform configurations and scripts 
 
 ## How to get the test setup run:
 
+### Install incus and OpenTofu
 Install incus stable or LTS on your system from the [zabbly/incus](https://github.com/zabbly/incus) release and initialize it on your local machine.
 
 Install [OpenTofu](https://opentofu.org/docs/intro/install/).
 
+
+### Create the test VMs with OpenTofu
 Go to terraform directory:
 ```
 cd terraform/
@@ -21,4 +24,20 @@ tofu init
 Create the VMs for testing:
 ```
 tofu apply
+```
+
+### Run the Ansible Playbook
+Go to the ansible directory:
+```
+cd ../ansible/
+```
+
+Copy the example inventory file:
+```
+cp hosts.yaml.example hosts.yaml
+```
+
+Run the Playbooks:
+```
+ansible-playbook deploy.yaml
 ```
