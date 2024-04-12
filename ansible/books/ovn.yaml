@@ -128,7 +128,7 @@
   order: shuffle
   gather_facts: yes
   vars:
-    task_ip_address: "{{ ovn_ip_address | default(ansible_default_ipv4['address']) }}"
+    task_ip_address: "{{ ovn_ip_address | default(ansible_default_ipv6['address'] | default(ansible_default_ipv4['address'])) }}"
     task_name: "{{ ovn_name | default('') }}"
     task_release: "{{ ovn_release | default('distro') }}"
     task_roles: "{{ ovn_roles | default([]) }}"
@@ -187,7 +187,7 @@
   order: shuffle
   gather_facts: yes
   vars:
-    task_ip_address: "{{ ovn_ip_address | default(ansible_default_ipv4['address']) }}"
+    task_ip_address: "{{ ovn_ip_address | default(ansible_default_ipv6['address'] | default(ansible_default_ipv4['address'])) }}"
     task_az_name: "{{ ovn_az_name | default('') }}"
     task_name: "{{ ovn_name | default('') }}"
     task_roles: "{{ ovn_roles | default([]) }}"

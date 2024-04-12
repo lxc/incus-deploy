@@ -12,6 +12,13 @@ public_network = {{ task_network_public }}
 {% if task_network_private %}
 private_network = {{ task_network_private }}
 {% endif %}
+auth allow insecure global id reclaim = false
+{% if ansible_default_ipv4['address'] | default("") %}
+ms bind ipv4 = true
+{% endif %}
+{% if ansible_default_ipv6['address'] | default("") %}
+ms bind ipv6 = true
+{% endif %}
 
 [client]
 rbd_cache = true
