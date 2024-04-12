@@ -27,6 +27,7 @@
  - `incus_init`: Initial configuration data (type: dict)
    - `network`: TBD
    - `storage`: TBD
+ - `incus_ip_address`: Override for the server's IP address (used cluster and client traffic) (type: string)
  - `incus_release`: Incus release to deploy, can be one of `daily`, `stable` or `lts-6.0` (type: string, default: `stable`)
  - `incus_roles`: Operation mode for the deployed Incus system (**required**, type: string)
    - `standalone`
