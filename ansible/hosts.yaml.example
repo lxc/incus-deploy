@@ -15,6 +15,7 @@ all:
         ansible_become: no
         ansible_incus_project: dev-incus-deploy
         ceph_roles:
+          - client
           - osd
         incus_roles:
           - cluster
@@ -24,6 +25,7 @@ all:
       hosts:
         server01:
           ceph_roles:
+            - client
             - mon
             - mds
             - mgr
@@ -36,6 +38,7 @@ all:
             - host
         server02:
           ceph_roles:
+            - client
             - mon
             - mds
             - mgr
@@ -48,6 +51,7 @@ all:
             - host
         server03:
           ceph_roles:
+            - client
             - mon
             - mds
             - mgr
@@ -63,6 +67,7 @@ all:
             - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
             - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
           ceph_roles:
+            - client
             - osd
             - rgw
         server05:
@@ -70,5 +75,6 @@ all:
             - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
             - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
           ceph_roles:
+            - client
             - osd
             - rgw
