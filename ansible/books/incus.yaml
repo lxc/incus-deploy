@@ -47,6 +47,7 @@
   order: shuffle
   gather_facts: yes
   vars:
+    task_init: "{{ incus_init | default('{}') }}"
     task_ip_address: "{{ incus_ip_address | default(ansible_default_ipv6['address'] | default(ansible_default_ipv4['address'])) }}"
     task_name: "{{ incus_name | default('') }}"
     task_roles: "{{ incus_roles | default([]) }}"
@@ -69,6 +70,38 @@
         install_recommends: no
         state: present
       when: '"ui" in task_roles'
+
+    - name: Install btrfs tools
+      apt:
+        name:
+          - btrfs-progs
+        install_recommends: no
+        state: present
+      when: "task_roles | length > 0 and 'btrfs' in task_init['storage'] | dict2items | json_query('[].value.driver')"
+
+    - name: Install ceph tools
+      apt:
+        name:
+          - ceph-common
+        install_recommends: no
+        state: present
+      when: "task_roles | length > 0 and 'ceph' in task_init['storage'] | dict2items | json_query('[].value.driver')"
+
+    - name: Install LVM tools
+      apt:
+        name:
+          - lvm2
+        install_recommends: no
+        state: present
+      when: "task_roles | length > 0 and 'lvm' in task_init['storage'] | dict2items | json_query('[].value.driver')"
+
+    - name: Install ZFS tools
+      apt:
+        name:
+          - zfsutils-linux
+        install_recommends: no
+        state: present
+      when: "task_roles | length > 0 and 'zfs' in task_init['storage'] | dict2items | json_query('[].value.driver')"
 
     - name: Set client listen address
       shell:
