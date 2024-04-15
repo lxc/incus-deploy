@@ -13,11 +13,12 @@ public_network = {{ task_network_public }}
 private_network = {{ task_network_private }}
 {% endif %}
 auth allow insecure global id reclaim = false
-{% if ansible_default_ipv4['address'] | default("") %}
-ms bind ipv4 = true
-{% endif %}
 {% if ansible_default_ipv6['address'] | default("") %}
 ms bind ipv6 = true
+ms bind ipv4 = false
+{% else %}
+ms bind ipv6 = false
+ms bind ipv4 = true
 {% endif %}
 
 [client]
