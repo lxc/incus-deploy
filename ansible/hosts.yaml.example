@@ -20,6 +20,23 @@ all:
         incus_roles:
           - cluster
           - ui
+        incus_init:
+          network:
+            default:
+              type: macvlan
+              local_config:
+                parent: enp5s0
+              default: true
+          storage:
+            local:
+              driver: zfs
+              local_config:
+                source: "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_disk3"
+            remote:
+              driver: ceph
+              local_config:
+                source: "incus_{{ incus_name }}"
+              default: true
         ovn_roles:
           - host
       hosts:

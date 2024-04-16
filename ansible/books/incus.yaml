@@ -42,7 +42,7 @@
         update_cache: yes
         cache_valid_time: 0
 
-- name: Incus - Install packages
+- name: Incus - Install packages and bootstrap
   hosts: all
   order: shuffle
   gather_facts: yes
@@ -113,6 +113,30 @@
         cmd: "incus --force-local config set cluster.https_address {{ task_ip_address }}"
       when: 'install.changed and "cluster" in task_roles and task_servers[0] == inventory_hostname'
 
+    - name: Add networks
+      shell:
+        cmd: "incus network create {{ item.key }} --type={{ item.value.type }}{% for k in item.value.local_config | default([]) %} {{ k }}={{ item.value.local_config[k] }}{% endfor %}{% for k in item.value.config | default([]) %} {{ k }}={{ item.value.config[k] }}{% endfor %}"
+      loop: "{{ task_init['network'] | dict2items }}"
+      when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname))'
+
+    - name: Add storage pools
+      shell:
+        cmd: "incus storage create {{ item.key }} {{ item.value.driver }}{% for k in item.value.local_config | default([]) %} {{ k }}={{ item.value.local_config[k] }}{% endfor %}{% for k in item.value.config | default([]) %} {{ k }}={{ item.value.config[k] }}{% endfor %}"
+      loop: "{{ task_init['storage'] | dict2items }}"
+      when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname))'
+
+    - name: Add storage pool to default profile
+      shell:
+        cmd: "incus profile device add default root disk path=/ pool={{ item }}"
+      loop: "{{ task_init['storage'] | dict2items | json_query('[?value.default].key') }}"
+      when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname))'
+
+    - name: Add network to default profile
+      shell:
+        cmd: "incus profile device add default eth0 nic network={{ item }} name=eth0"
+      loop: "{{ task_init['network'] | dict2items | json_query('[?value.default].key') }}"
+      when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname))'
+
     - name: Bootstrap the cluster
       shell:
         cmd: "incus --force-local cluster enable {{ inventory_hostname }}"
@@ -135,4 +159,15 @@
             cluster_address: "{{ task_ip_address }}"
             cluster_token: "{{ cluster_add.stdout }}"
             server_address: "{{ task_ip_address }}"
+            member_config:{% for pool in task_init.storage %}{% for key in task_init.storage[pool].local_config %}
+
+              - entity: storage-pool
+                name: {{ pool }}
+                key: {{ key }}
+                value: {{ task_init.storage[pool].local_config[key] }}{% endfor %}{% endfor %}{% for network in task_init.network %}{% for key in task_init.network[network].local_config %}
+
+              - entity: network
+                name: {{ network }}
+                key: {{ key }}
+                value: {{ task_init.network[network].local_config[key] }}{% endfor %}{% endfor %}
       when: 'cluster_add.changed'
