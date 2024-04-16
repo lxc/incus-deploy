@@ -117,6 +117,7 @@
     - name: Set OVN NorthBound database
       shell:
         cmd: "incus --force-local config set network.ovn.northbound_connection={{ task_ovn_northbound }} network.ovn.client_cert=\"{{ lookup('file', '../data/ovn/'+ovn_name+'/'+inventory_hostname+'.crt') }}\" network.ovn.client_key=\"{{ lookup('file', '../data/ovn/'+ovn_name+'/'+inventory_hostname+'.key') }}\" network.ovn.ca_cert=\"{{ lookup('file', '../data/ovn/'+ovn_name+'/ca.crt') }}\""
+      notify: Restart Incus
       when: 'install.changed and task_ovn_northbound and ("standalone" in task_roles or "cluster" in task_roles)'
 
     - name: Add networks
@@ -177,3 +178,8 @@
                 key: {{ key }}
                 value: {{ task_init.network[network].local_config[key] }}{% endfor %}{% endfor %}
       when: 'cluster_add.changed'
+  handlers:
+    - name: Restart Incus
+      systemd:
+        name: incus.service
+        state: restarted
