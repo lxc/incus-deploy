@@ -11,6 +11,19 @@ resource "incus_project" "this" {
   }
 }
 
+resource "incus_network" "this" {
+  project     = incus_project.this.name
+  name        = "br-ovn-test"
+  description = "Network used to test incus-deploy (OVN uplink)"
+
+  config = {
+    "ipv4.address" = "172.31.254.1/24"
+    "ipv4.nat" = "true"
+    "ipv6.address" = "fd00:1e4d:637d:1234::1/64"
+    "ipv6.nat" = "true"
+  }
+}
+
 resource "incus_profile" "this" {
   project     = incus_project.this.name
   name        = "cluster"
@@ -38,6 +51,16 @@ resource "incus_profile" "this" {
     properties = {
       "network" = "incusbr0"
       "name"    = "eth0"
+    }
+  }
+
+  device {
+    type = "nic"
+    name = "eth1"
+
+    properties = {
+      "network" = incus_network.this.name
+      "name"    = "eth1"
     }
   }
 
