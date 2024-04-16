@@ -52,6 +52,7 @@
     task_name: "{{ incus_name | default('') }}"
     task_roles: "{{ incus_roles | default([]) }}"
 
+    task_ovn_northbound: "{{ lookup('template', '../files/ovn/ovn-central.servers.tpl') | from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\\1]:6641') | join(',') }}"
     task_servers: "{{ lookup('template', '../files/incus/incus.servers.tpl') | from_yaml | sort }}"
   tasks:
     - name: Install the Incus package
@@ -113,6 +114,11 @@
         cmd: "incus --force-local config set cluster.https_address {{ task_ip_address }}"
       when: 'install.changed and "cluster" in task_roles and task_servers[0] == inventory_hostname'
 
+    - name: Set OVN NorthBound database
+      shell:
+        cmd: "incus --force-local config set network.ovn.northbound_connection={{ task_ovn_northbound }} network.ovn.client_cert=\"{{ lookup('file', '../data/ovn/'+ovn_name+'/'+inventory_hostname+'.crt') }}\" network.ovn.client_key=\"{{ lookup('file', '../data/ovn/'+ovn_name+'/'+inventory_hostname+'.key') }}\" network.ovn.ca_cert=\"{{ lookup('file', '../data/ovn/'+ovn_name+'/ca.crt') }}\""
+      when: 'install.changed and task_ovn_northbound and ("standalone" in task_roles or "cluster" in task_roles)'
+
     - name: Add networks
       shell:
         cmd: "incus network create {{ item.key }} --type={{ item.value.type }}{% for k in item.value.local_config | default([]) %} {{ k }}={{ item.value.local_config[k] }}{% endfor %}{% for k in item.value.config | default([]) %} {{ k }}={{ item.value.config[k] }}{% endfor %}"
@@ -159,12 +165,12 @@
             cluster_address: "{{ task_ip_address }}"
             cluster_token: "{{ cluster_add.stdout }}"
             server_address: "{{ task_ip_address }}"
-            member_config:{% for pool in task_init.storage %}{% for key in task_init.storage[pool].local_config %}
+            member_config:{% for pool in task_init.storage %}{% for key in task_init.storage[pool].local_config | default([]) %}
 
               - entity: storage-pool
                 name: {{ pool }}
                 key: {{ key }}
-                value: {{ task_init.storage[pool].local_config[key] }}{% endfor %}{% endfor %}{% for network in task_init.network %}{% for key in task_init.network[network].local_config %}
+                value: {{ task_init.storage[pool].local_config[key] }}{% endfor %}{% endfor %}{% for network in task_init.network %}{% for key in task_init.network[network].local_config | default([]) %}
 
               - entity: network
                 name: {{ network }}
