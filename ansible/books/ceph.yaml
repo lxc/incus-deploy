@@ -9,7 +9,17 @@
     task_client_admin_keyring: ../data/ceph/cluster.{{ task_fsid }}.client.admin.keyring
     task_mon_keyring: ../data/ceph/cluster.{{ task_fsid }}.mon.keyring
     task_mon_map: ../data/ceph/cluster.{{ task_fsid }}.mon.map
+    task_release: "{{ ceph_release | default('reef') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
+
+    task_release_majors:
+      luminous: 12
+      mimic: 13
+      nautilus: 14
+      octopus: 15
+      pacific: 16
+      quincy: 17
+      reef: 18
   tasks:
     - name: Generate mon keyring
       delegate_to: 127.0.0.1
@@ -40,7 +50,7 @@
     - name: Generate mon map
       delegate_to: 127.0.0.1
       shell:
-        cmd: monmaptool --create --fsid {{ task_fsid }} {{ task_mon_map }}
+        cmd: monmaptool --create{% if task_release_majors[task_release] | default(None) %} --set-min-mon-release={{ task_release_majors[task_release] }}{% endif %} --fsid {{ task_fsid }} {{ task_mon_map }}
         creates: '{{ task_mon_map }}'
       throttle: 1
       notify: Add nodes to mon map
