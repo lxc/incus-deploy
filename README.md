@@ -73,6 +73,8 @@ An empty disk on each server, for 'local storage' :
 
 One can edit hosts.yaml.example to fit his needs : 
 
+First of all, use uuidgen to generate a unique UUID for your deployment, and remplace it in hosts.yaml.
+
   ### Baremetal vars : 
 
   - ansible_connection: incus
@@ -108,3 +110,5 @@ Used to define source for local storage pool. Can be either a drive, or a direct
 Can be changed, to match FQDN of the actual server, or one can add the address of each server as : ansible_host: <ip address>.
 Server names can also be changed to their IP, but, it's annoying when you're on an IPv6 stack ;-)
 
+  -  ceph_disks: data: nvme-QEMU_NVMe_Ctrl_incus_disk1 / ceph_disks: data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+Must be changed to match hardware drives. To avoid problems, it is suggested to use their name, as seen in /dev/disk/by-id/.
