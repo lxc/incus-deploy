@@ -1,0 +1,7 @@
+ceph_disks:
+  - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+  - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+ceph_roles:
+  - client
+  - osd
+  - rgw

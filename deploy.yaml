@@ -1,0 +1,21 @@
+---
+- name: Deploy Ceph
+  hosts: all
+  order: shuffle
+  gather_facts: true
+  roles:
+    - ceph
+
+- name: Deploy OVN
+  hosts: all
+  order: shuffle
+  gather_facts: true
+  roles:
+    - ovn
+
+- name: Deploy incus
+  hosts: all
+  order: shuffle
+  gather_facts: true
+  roles:
+    - incus

@@ -1,0 +1,12 @@
+ceph_roles:
+  - client
+  - mon
+  - mds
+  - mgr
+  - osd
+ceph_disks:
+  - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+  - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+ovn_roles:
+  - central
+  - host

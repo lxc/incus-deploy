@@ -1,0 +1,6 @@
+ceph_fsid: "e2850e1f-7aab-472e-b6b1-824e19a75071"
+ceph_rbd_cache: "2048Mi"
+ceph_rbd_cache_max: "1792Mi"
+ceph_rbd_cache_target: "1536Mi"
+incus_name: "baremetal"
+ovn_name: "baremetal"

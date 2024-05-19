@@ -1,0 +1,45 @@
+---
+
+- name: Destroy  old test environment
+  hosts: localhost
+  tasks:
+    - name: Destroy old terraform test project
+      terraform:
+        project_path: test/terraform/
+        binary_path: /usr/bin/tofu
+        state: absent
+    - name: Delete old ceph data folder
+      file:
+        path: data/{{item}}/
+        state: absent
+      loop:
+        - ceph
+        - ovn/baremetal
+        - incus
+
+- name: Prepare test environment
+  hosts: localhost
+  tasks:
+    - name: Spawn terraform test project
+      terraform:
+        project_path: test/terraform/
+        binary_path: /usr/bin/tofu
+        state: present
+    - name: Create ceph data folder
+      file:
+        path: data/{{item}}/
+        state: directory
+      loop:
+        - ceph
+        - ovn/baremetal
+        - incus
+
+- name: Wait for all test hosts to be ready
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Get facts and retry until an ULA IPv6 has been assigned
+      setup:
+      retries: 60
+      delay: 1
+      until: ansible_default_ipv6['address'] is search('^fd')

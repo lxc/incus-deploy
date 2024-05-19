@@ -1,3 +1,0 @@
-- import_playbook: books/ceph.yaml
-- import_playbook: books/ovn.yaml
-- import_playbook: books/incus.yaml

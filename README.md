@@ -16,7 +16,7 @@ apt install --no-install-recommends ceph-base ceph-common
 ### Create the test VMs with OpenTofu
 Go to terraform directory:
 ```
-cd terraform/
+cd test/terraform/
 ```
 
 Init the terraform project:
@@ -30,19 +30,14 @@ tofu apply
 ```
 
 ### Run the Ansible Playbook
-Go to the ansible directory:
+Go back to the root directory:
 ```
-cd ../ansible/
-```
-
-Copy the example inventory file:
-```
-cp hosts.yaml.example hosts.yaml
+cd ../../
 ```
 
-Run the Playbooks:
+Run the Playbook with the test inventory:
 ```
-ansible-playbook deploy.yaml
+ansible-playbook -i test/inventory/ deploy.yaml
 ```
 
 NOTE: When re-deploying the same cluster (e.g. following a `terraform
