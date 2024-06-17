@@ -44,6 +44,10 @@
    - `cluster`
    - `ui`: Whether to serve the Incus UI
 
+## LVM cluster
+ - `lvmcluster_name`: Name identifier for the deployment (**required**, type: string)
+ - `lvmcluster_vgs`: Dict of VG name to storage device path
+
 ## OVN
 
  - `ovn_ip_address`: Override for the server's IP address (used for tunnels and DB traffic) (type: string)

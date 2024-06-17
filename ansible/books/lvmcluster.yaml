@@ -1,0 +1,89 @@
+---
+- name: LVM Cluster - Generate configuration
+  hosts: all
+  order: shuffle
+  gather_facts: no
+  vars:
+    task_name: "{{ lvmcluster_name | default('') }}"
+  any_errors_fatal: true
+  tasks:
+    - name: Create cluster directory
+      delegate_to: 127.0.0.1
+      file:
+        path: "../data/lvmcluster/{{ task_name }}"
+        mode: 0755
+        state: directory
+      throttle: 1
+      when: 'task_name'
+      register: create
+
+    - name: Create cluster host_id tracking
+      delegate_to: 127.0.0.1
+      throttle: 1
+      copy:
+        content: "{}"
+        dest: "../data/lvmcluster/{{ task_name }}/host_id.yaml"
+        mode: 0644
+      when: "create.changed"
+
+    - name: Update cluster host_id tracking
+      delegate_to: 127.0.0.1
+      throttle: 1
+      template:
+        src: "../files/lvmcluster/host_id.yaml.tpl"
+        dest: "../data/lvmcluster/{{ task_name }}/host_id.yaml"
+      vars:
+        task_host_ids: "{{ lookup('file', '../data/lvmcluster/' + task_name + '/host_id.yaml') | from_yaml }}"
+
+- name: LVM Cluster - Install packages and host config
+  hosts: all
+  order: shuffle
+  gather_facts: no
+  vars:
+    task_name: "{{ lvmcluster_name | default('') }}"
+    task_host_ids: "{{ lookup('file', '../data/lvmcluster/' + task_name + '/host_id.yaml') | from_yaml }}"
+  any_errors_fatal: true
+  tasks:
+    - name: Install the LVM packages
+      apt:
+        name:
+          - lvm2
+          - lvm2-lockd
+          - sanlock
+        install_recommends: no
+        state: present
+
+    - name: Configure for LVM cluster
+      template:
+        src: ../files/lvmcluster/lvmlocal.conf.tpl
+        dest: /etc/lvm/lvmlocal.conf
+
+- name: LVM Cluster - Create VGs
+  hosts: all
+  order: shuffle
+  gather_facts: no
+  vars:
+    task_vgs: "{{ lvmcluster_vgs | default({}) }}"
+  any_errors_fatal: true
+  tasks:
+    - name: Check for existing VGs
+      shell:
+        cmd: "vgs {{ item }}"
+      register: check
+      loop: "{{ lvmcluster_vgs.keys() }}"
+      run_once: true
+      changed_when: false
+      failed_when: "check.rc not in (0, 5)"
+
+    - name: Create the VG (first server)
+      shell:
+        cmd: "vgcreate --shared {{ item.item }} {{ task_vgs[item.item] }}"
+      when: "item.rc == 5"
+      loop: "{{ check.results }}"
+      run_once: true
+      register: create
+
+    - name: Ensure lock manager is running
+      shell:
+        cmd: "vgchange --lock-start"
+      when: "create.changed"
