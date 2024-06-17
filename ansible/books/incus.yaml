@@ -120,7 +120,7 @@
       shell:
         cmd: "incus --force-local config set network.ovn.northbound_connection={{ task_ovn_northbound }} network.ovn.client_cert=\"{{ lookup('file', '../data/ovn/'+ovn_name+'/'+inventory_hostname+'.crt') }}\" network.ovn.client_key=\"{{ lookup('file', '../data/ovn/'+ovn_name+'/'+inventory_hostname+'.key') }}\" network.ovn.ca_cert=\"{{ lookup('file', '../data/ovn/'+ovn_name+'/ca.crt') }}\""
       notify: Restart Incus
-      when: 'install.changed and task_ovn_northbound and ("standalone" in task_roles or "cluster" in task_roles)'
+      when: 'install.changed and task_ovn_northbound and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname))'
 
     - name: Add networks
       shell:
