@@ -6,6 +6,7 @@
   vars:
     task_release: "{{ incus_release | default('stable') }}"
     task_roles: "{{ incus_roles | default([]) }}"
+  any_errors_fatal: true
   tasks:
     - name: Create apt keyring path
       file:
@@ -54,6 +55,7 @@
 
     task_ovn_northbound: "{{ lookup('template', '../files/ovn/ovn-central.servers.tpl') | from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\\1]:6641') | join(',') }}"
     task_servers: "{{ lookup('template', '../files/incus/incus.servers.tpl') | from_yaml | sort }}"
+  any_errors_fatal: true
   tasks:
     - name: Install the Incus package
       apt:

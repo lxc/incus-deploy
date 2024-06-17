@@ -7,6 +7,7 @@
     task_name: "{{ ovn_name | default('') }}"
     task_pki_path: "../data/ovn/{{ task_name }}/"
     task_roles: "{{ ovn_roles | default([]) }}"
+  any_errors_fatal: true
   tasks:
     - name: Create cluster directory
       delegate_to: 127.0.0.1
@@ -87,6 +88,7 @@
   vars:
     task_release: "{{ ovn_release | default('distro') }}"
     task_roles: "{{ ovn_roles | default([]) }}"
+  any_errors_fatal: true
   tasks:
     - name: Create apt keyring path
       file:
@@ -137,6 +139,7 @@
     task_central_southbound: "{{ lookup('template', '../files/ovn/ovn-central.servers.tpl') | from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\\1]:6642') | join(',') }}"
     task_ic_northbound: "{{ lookup('template', '../files/ovn/ovn-ic.servers.tpl') | from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\\1]:6645') | join(',') }}"
     task_ic_southbound: "{{ lookup('template', '../files/ovn/ovn-ic.servers.tpl') | from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\\1]:6646') | join(',') }}"
+  any_errors_fatal: true
   tasks:
     - name: Install the OVN central package
       apt:
@@ -197,6 +200,7 @@
     task_ic_northbound: "{{ lookup('template', '../files/ovn/ovn-ic.servers.tpl') | from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\\1]:6645') | join(',') }}"
     task_ic_southbound: "{{ lookup('template', '../files/ovn/ovn-ic.servers.tpl') | from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\\1]:6646') | join(',') }}"
     task_pki_path: "../data/ovn/{{ task_name }}/"
+  any_errors_fatal: true
   tasks:
     - name: Create OVN config directory
       file:
