@@ -3,6 +3,9 @@
   hosts: all
   order: shuffle
   gather_facts: yes
+  gather_subset:
+    - "default_ipv4"
+    - "default_ipv6"
   vars:
     task_fsid: "{{ ceph_fsid | default('') }}"
     task_bootstrap_osd_keyring: ../data/ceph/cluster.{{ task_fsid }}.bootstrap-osd.keyring
@@ -78,6 +81,8 @@
   hosts: all
   order: shuffle
   gather_facts: yes
+  gather_subset:
+    - "distribution_release"
   vars:
     task_release: "{{ ceph_release | default('reef') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
@@ -187,7 +192,10 @@
 - name: Ceph - Set up config and keyrings
   hosts: all
   order: shuffle
-  gather_facts: no
+  gather_facts: yes
+  gather_subset:
+    - "default_ipv4"
+    - "default_ipv6"
   vars:
     task_fsid: "{{ ceph_fsid | default('') }}"
     task_keyrings: "{{ ceph_keyrings | default(['admin']) }}"
@@ -294,7 +302,7 @@
 - name: Ceph - Deploy mon
   hosts: all
   order: shuffle
-  gather_facts: yes
+  gather_facts: no
   vars:
     task_fsid: "{{ ceph_fsid | default('') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
@@ -328,7 +336,7 @@
 - name: Ceph - Deploy osd
   hosts: all
   order: shuffle
-  gather_facts: yes
+  gather_facts: no
   vars:
     task_disks: "{{ ceph_disks | default([]) }}"
     task_fsid: "{{ ceph_fsid | default('') }}"
@@ -352,7 +360,7 @@
 - name: Ceph - Deploy mgr
   hosts: all
   order: shuffle
-  gather_facts: yes
+  gather_facts: no
   vars:
     task_fsid: "{{ ceph_fsid | default('') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
@@ -394,7 +402,7 @@
 - name: Ceph - Deploy mds
   hosts: all
   order: shuffle
-  gather_facts: yes
+  gather_facts: no
   vars:
     task_fsid: "{{ ceph_fsid | default('') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
@@ -436,7 +444,7 @@
 - name: Ceph - Deploy rgw
   hosts: all
   order: shuffle
-  gather_facts: yes
+  gather_facts: no
   vars:
     task_fsid: "{{ ceph_fsid | default('') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
@@ -478,7 +486,7 @@
 - name: Ceph - Deploy rbd-mirror
   hosts: all
   order: shuffle
-  gather_facts: yes
+  gather_facts: no
   vars:
     task_fsid: "{{ ceph_fsid | default('') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
