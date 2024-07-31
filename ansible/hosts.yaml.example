@@ -57,6 +57,7 @@ all:
               local_config:
                 source: "vg0"
               default: true
+        lvmcluster_metadata_size: 100m
         lvmcluster_vgs:
           vg0: "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_disk4"
         ovn_roles:

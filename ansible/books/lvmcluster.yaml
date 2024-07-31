@@ -65,6 +65,7 @@
   order: shuffle
   gather_facts: no
   vars:
+    task_metadata_size: "{{ lvmcluster_metadata_size | default('10m') }}"
     task_vgs: "{{ lvmcluster_vgs | default({}) }}"
   any_errors_fatal: true
   tasks:
@@ -79,7 +80,7 @@
 
     - name: Create the VG (first server)
       shell:
-        cmd: "vgcreate --shared {{ item.item }} {{ task_vgs[item.item] }}"
+        cmd: "vgcreate --shared {{ item.item }} {{ task_vgs[item.item] }} --metadatasize={{ task_metadata_size }}"
       when: "item.rc == 5"
       loop: "{{ check.results }}"
       run_once: true
