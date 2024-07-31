@@ -169,6 +169,7 @@
         name:
           - ceph-osd
           - ceph-volume
+          - python3-packaging
         install_recommends: no
         state: present
       when: '"osd" in task_roles'
