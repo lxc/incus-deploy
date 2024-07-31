@@ -173,7 +173,7 @@
             cluster_address: "{{ task_ip_address }}"
             cluster_token: "{{ cluster_add.stdout }}"
             server_address: "{{ task_ip_address }}"
-            member_config:{% for pool in task_init.storage %}{% for key in task_init.storage[pool].local_config | default([]) %}
+            member_config: {% for pool in task_init.storage %}{% for key in task_init.storage[pool].local_config | default([]) %}
 
               - entity: storage-pool
                 name: {{ pool }}
