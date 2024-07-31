@@ -133,11 +133,23 @@
       loop: "{{ task_init['network'] | dict2items }}"
       when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname))'
 
+    - name: Set network description
+      shell:
+        cmd: "incus network set --property {{ item.key }} description=\"{{ item.value.description }}\""
+      loop: "{{ task_init['network'] | dict2items }}"
+      when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname)) and item.value.description | default(None)'
+
     - name: Add storage pools
       shell:
         cmd: "incus storage create {{ item.key }} {{ item.value.driver }}{% for k in item.value.local_config | default([]) %} {{ k }}={{ item.value.local_config[k] }}{% endfor %}{% for k in item.value.config | default([]) %} {{ k }}={{ item.value.config[k] }}{% endfor %}"
       loop: "{{ task_init['storage'] | dict2items }}"
       when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname))'
+
+    - name: Set storage pool description
+      shell:
+        cmd: "incus storage set --property {{ item.key }} description=\"{{ item.value.description }}\""
+      loop: "{{ task_init['storage'] | dict2items }}"
+      when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname)) and item.value.description | default(None)'
 
     - name: Add storage pool to default profile
       shell:
