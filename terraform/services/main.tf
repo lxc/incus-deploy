@@ -53,6 +53,6 @@ resource "incus_instance" "instances" {
   profiles = ["default", incus_profile.this.name]
 
   lifecycle {
-    ignore_changes = [ running ]
+    ignore_changes = [running]
   }
 }

@@ -18,9 +18,9 @@ resource "incus_network" "this" {
 
   config = {
     "ipv4.address" = "172.31.254.1/24"
-    "ipv4.nat" = "true"
+    "ipv4.nat"     = "true"
     "ipv6.address" = "fd00:1e4d:637d:1234::1/64"
-    "ipv6.nat" = "true"
+    "ipv6.nat"     = "true"
   }
 }
 
@@ -126,6 +126,7 @@ resource "incus_storage_volume" "disk4" {
     "security.shared" = "true"
   }
 }
+
 resource "incus_instance" "instances" {
   for_each = var.instance_names
 
@@ -169,6 +170,6 @@ resource "incus_instance" "instances" {
   }
 
   lifecycle {
-    ignore_changes = [ running ]
+    ignore_changes = [running]
   }
 }
