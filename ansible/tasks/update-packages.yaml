@@ -1,0 +1,27 @@
+- name: Apply all updates
+  hosts: all
+  gather_facts: no
+  order: shuffle
+  tasks:
+    - name: Update apt repo and cache on all Debian/Ubuntu boxes
+      apt:
+        force_apt_get: yes
+        update_cache: yes
+        cache_valid_time: 1800
+
+    - name: Upgrade all packages on servers
+      apt:
+        force_apt_get: yes
+        upgrade: dist
+        purge: yes
+
+    - name: Clean unused packages
+      apt:
+        force_apt_get: yes
+        autoremove: yes
+        purge: yes
+
+    - name: Clean leftover packages
+      apt:
+        force_apt_get: yes
+        autoclean: yes
