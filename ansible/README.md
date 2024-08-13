@@ -51,8 +51,9 @@
 
 ## OVN
 
- - `ovn_ip_address`: Override for the server's IP address (used for tunnels and DB traffic) (type: string)
  - `ovn_az_name`: OVN availability zone name (**required** if using OVN IC, type: string)
+ - `ovn_clients`: List of certificates to generate for OVN clients (type: list of string)
+ - `ovn_ip_address`: Override for the server's IP address (used for tunnels and DB traffic) (type: string)
  - `ovn_name`: OVN deployment name (**required**, type: string)
  - `ovn_release`: OVN release to deploy, can be `distro` or `ppa` (type: string, default: `distro`)
  - `ovn_roles`: List of roles the server should have in the OVN cluster (**required**, type: list of string):

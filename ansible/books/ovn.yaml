@@ -4,6 +4,7 @@
   order: shuffle
   gather_facts: no
   vars:
+    task_clients: "{{ ovn_clients | default([]) }}"
     task_name: "{{ ovn_name | default('') }}"
     task_pki_path: "../data/ovn/{{ task_name }}/"
     task_roles: "{{ ovn_roles | default([]) }}"
@@ -79,6 +80,39 @@
         ownca_not_before: "-1d"
         provider: ownca
       when: "cert_csr.changed"
+      throttle: 1
+
+    - name: Create client keys
+      delegate_to: 127.0.0.1
+      community.crypto.openssl_privatekey:
+        path: "{{ task_pki_path }}/{{ item }}.key"
+      register: client_key
+      when: 'task_roles | length > 0'
+      loop: "{{ task_clients }}"
+      throttle: 1
+
+    - name: Create client signing request
+      delegate_to: 127.0.0.1
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ task_pki_path }}/{{ item.item }}.key"
+        common_name: "OVN client certificate for {{ item.item }}"
+        use_common_name_for_san: false
+      register: client_csr
+      loop: "{{ client_key.results }}"
+      when: "client_key.changed"
+
+    - name: Issue client certificate
+      delegate_to: 127.0.0.1
+      community.crypto.x509_certificate:
+        path: "{{ task_pki_path }}/{{ item.item.item }}.crt"
+        csr_content: "{{ item.csr }}"
+        ownca_path: "{{ task_pki_path }}/ca.crt"
+        ownca_privatekey_path: "{{ task_pki_path }}/ca.key"
+        ownca_not_after: "+3650d"
+        ownca_not_before: "-1d"
+        provider: ownca
+      loop: "{{ client_csr.results }}"
+      when: "client_csr.changed"
       throttle: 1
 
 - name: OVN - Add package repository
