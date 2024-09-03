@@ -4,10 +4,14 @@ all:
     ceph_rbd_cache: "2048Mi"
     ceph_rbd_cache_max: "1792Mi"
     ceph_rbd_cache_target: "1536Mi"
+
     incus_name: "baremetal"
     incus_release: "stable"
+
     lvmcluster_name: "baremetal"
+
     ovn_name: "baremetal"
+    ovn_az_name: "zone1"
     ovn_release: "ppa"
   children:
     baremetal:
@@ -17,18 +21,18 @@ all:
         ansible_user: root
         ansible_become: no
         ansible_incus_project: dev-incus-deploy
+
         ceph_roles:
           - client
           - osd
-        incus_roles:
-          - cluster
-          - ui
+
         incus_init:
           network:
             LOCAL:
               type: macvlan
               local_config:
                 parent: enp5s0
+              description: Directly attach to host networking
             UPLINK:
               type: physical
               config:
@@ -38,67 +42,81 @@ all:
                 dns.nameservers: "1.1.1.1,1.0.0.1"
               local_config:
                 parent: enp6s0
+              description: Physical network for OVN routers
             default:
               type: ovn
               config:
                 network: UPLINK
               default: true
+              description: Initial OVN network
           storage:
             local:
               driver: zfs
               local_config:
                 source: "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_disk3"
+              description: Local storage pool
             remote:
               driver: ceph
               local_config:
                 source: "incus_{{ incus_name }}"
+              description: Distributed storage pool (cluster-wide)
             shared:
               driver: lvmcluster
               local_config:
                 source: "vg0"
               default: true
+              description: Shared storage pool (cluster-wide)
+
+        incus_roles:
+          - cluster
+          - ui
+
         lvmcluster_metadata_size: 100m
         lvmcluster_vgs:
           vg0: "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_disk4"
+
         ovn_roles:
           - host
       hosts:
         server01:
+          ceph_disks:
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
           ceph_roles:
             - client
             - mon
             - mds
             - mgr
             - osd
-          ceph_disks:
-            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
-            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+
           ovn_roles:
             - central
             - host
         server02:
+          ceph_disks:
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
           ceph_roles:
             - client
             - mon
             - mds
             - mgr
             - osd
-          ceph_disks:
-            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
-            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+
           ovn_roles:
             - central
             - host
         server03:
+          ceph_disks:
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
           ceph_roles:
             - client
             - mon
             - mds
             - mgr
             - osd
-          ceph_disks:
-            - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
-            - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+
           ovn_roles:
             - central
             - host
