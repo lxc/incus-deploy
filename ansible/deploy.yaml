@@ -1,4 +1,4 @@
-- import_playbook: books/env-checks.yaml
+- import_playbook: books/environment.yaml
 - import_playbook: books/ceph.yaml
 - import_playbook: books/lvmcluster.yaml
 - import_playbook: books/ovn.yaml
