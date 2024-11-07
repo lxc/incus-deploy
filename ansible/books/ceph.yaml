@@ -226,7 +226,7 @@
         group: ceph
         mode: 0750
         state: directory
-      when: 'task_roles|length > 1 or task_roles[0] != "client"'
+      when: 'task_roles|length > 0 and (task_roles|length > 1 or task_roles[0] != "client")'
 
     - name: Create monitor bootstrap path
       file:
