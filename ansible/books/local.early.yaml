@@ -1,0 +1,6 @@
+# Playbook that's run prior to any of the incus-deploy books.
+- name: Local - Run some early tasks
+  hosts: all
+  order: shuffle
+  gather_facts: no
+  any_errors_fatal: true
