@@ -53,6 +53,7 @@
           - sanlock
         install_recommends: no
         state: present
+      when: 'task_name'
 
     - name: Configure for LVM cluster
       template:
