@@ -1,0 +1,41 @@
+---
+- name: Netplan - Override system configuration
+  hosts: all
+  order: shuffle
+  gather_facts: no
+  any_errors_fatal: true
+  tasks:
+    - name: Check if a Netplan configuration exists
+      local_action: stat path=../data/netplan/{{ inventory_hostname }}.yaml
+      register: main_file
+
+    - name: Ensure netplan is installed
+      apt:
+        name:
+          - netplan.io
+        state: present
+      when: main_file.stat.exists
+
+    - name: Remove existing configuration
+      file:
+        path: "/etc/netplan/{{ item }}"
+        state: absent
+      loop:
+        - 00-snapd-config.yaml
+        - 00-installer-config.yaml
+        - 10-lxc.yaml
+        - 50-cloud-init.yaml
+      when: main_file.stat.exists
+      notify: Apply netplan
+
+    - name: Transfer netplan configuration
+      copy:
+        src: ../data/netplan/{{ inventory_hostname }}.yaml
+        dest: /etc/netplan/00-ansible-main.yaml
+        mode: 0600
+      when: main_file.stat.exists
+      notify: Apply netplan
+
+  handlers:
+    - name: Apply netplan
+      shell: netplan apply

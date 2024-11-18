@@ -1,4 +1,5 @@
 - import_playbook: books/local.early.yaml
+- import_playbook: books/netplan.yaml
 - import_playbook: books/environment.yaml
 - import_playbook: books/nvme.yaml
 - import_playbook: books/ceph.yaml
