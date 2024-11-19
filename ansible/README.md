@@ -25,6 +25,10 @@
 ## Incus
  - `incus_name`: Name identifier for the deployment (**required**, type: string)
  - `incus_init`: Initial configuration data (type: dict)
+   - `config`: Dict of config keys
+   - `clients`: Dict of client certificates to trust
+     - `type`: Type of certificate, typically `client` or `metrics` (**required**, type: string)
+     - `certificate`: PEM encoded certificate (**required**, type: string)
    - `network`: Dict of networks
      - `name`: Name of the network (**required**, type: string)
      - `type`: Type of network (**required**, type: string)
@@ -43,6 +47,12 @@
    - `standalone`
    - `cluster`
    - `ui`: Whether to serve the Incus UI
+
+## Netplan
+Netplan doesn't make use of configuration variables, but if you wish to replace the network configuration of a server, you can do so by putting a file in `data/netplan/HOSTNAME.yaml`.
+
+## NVME
+ - `nvme_targets`: List of NVME over TCP targets (IPs) (type: list of strings)
 
 ## LVM cluster
  - `lvmcluster_metadata_size`: PV metadata size (default to 10MB)
