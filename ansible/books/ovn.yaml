@@ -217,7 +217,7 @@
 
   handlers:
     - name: Configure OVS
-      shell: ovs-vsctl set open_vswitch . external_ids:ovn-remote={{ task_central_southbound }} external_ids:ovn-encap-type=geneve external_ids:ovn-encap-ip={{ task_ip_address }}
+      shell: ovs-vsctl set open_vswitch . external_ids:hostname={{ inventory_hostname }} external_ids:ovn-remote={{ task_central_southbound }} external_ids:ovn-encap-type=geneve external_ids:ovn-encap-ip={{ task_ip_address }}
 
     - name: Enable OVN IC gateway
       shell:
