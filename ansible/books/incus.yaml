@@ -203,6 +203,13 @@
         cmd: "incus config set {{ item.key }}=\"{{ item.value }}\""
       loop: "{{ task_init['config'] | default({}) | dict2items }}"
       when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname))'
+
+    - name: Load client certificates
+      shell:
+        cmd: "incus config trust add-certificate --name \"{{ item.key }}\" --type={{ item.value.type | default('client') }} -"
+        stdin: "{{ item.value.certificate }}"
+      loop: "{{ task_init['clients'] | default({}) | dict2items }}"
+      when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname))'
   handlers:
     - name: Restart Incus
       systemd:
