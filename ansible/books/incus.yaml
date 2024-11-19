@@ -197,6 +197,12 @@
                 key: {{ key }}
                 value: {{ task_init.network[network].local_config[key] }}{% endfor %}{% endfor %}
       when: 'cluster_add.changed'
+
+    - name: Apply additional configuration
+      shell:
+        cmd: "incus config set {{ item.key }}=\"{{ item.value }}\""
+      loop: "{{ task_init['config'] | default({}) | dict2items }}"
+      when: 'install.changed and ("standalone" in task_roles or ("cluster" in task_roles and task_servers[0] == inventory_hostname))'
   handlers:
     - name: Restart Incus
       systemd:
