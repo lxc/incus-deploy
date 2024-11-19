@@ -63,7 +63,7 @@ all:
             shared:
               driver: lvmcluster
               local_config:
-                lvm.vg.name: "vg0"
+                lvm.vg_name: "vg0"
                 source: "vg0"
               default: true
               description: Shared storage pool (cluster-wide)
