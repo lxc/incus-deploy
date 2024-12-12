@@ -1,0 +1,27 @@
+# Example of terraform.tfvars
+# 
+# You can copy the contents of this file to terraform.tfvars and modify 
+# values for your own setup to operate with values different from the defaults
+# 
+# A terraform.tfvars will override any other defined variables such as the ones 
+# in *.auto.tfvars or defaults in variables.tf
+# https://opentofu.org/docs/language/values/variables/#variable-definitions-tfvars-files
+# https://opentofu.org/docs/language/values/variables/#variable-definition-precedence
+
+# Provider variables
+incus_host_name    = "incus"     # default: incus
+incus_host_scheme  = "https"     # default: https
+incus_host_address = "127.0.0.1" # default: 127.0.0.1
+incus_host_port    = 443         # default: 443
+incus_host_default = true        # default: true
+
+# Incus Host variables
+incus_storage_pool   = "default"  # default: default
+incus_nic_method     = "network"  # default: network (can be: network / nictype)
+incus_network_name   = "incusbr0" # default: incusbr0 (only used with incus_nic_method = network)
+incus_nictype        = "bridged"  # default: bridged (only used with incus_nic_method = nictype)
+incus_nictype_parent = "incusbr0" # default: incusbr0 (only used with incus_nic_method = nictype)
+
+# baremetal-incus configs
+baremetal_net_ipv4_address = "172.31.254.1/24"
+baremetal_net_ipv6_address = "fd00:1e4d:637d:1234::1/64"

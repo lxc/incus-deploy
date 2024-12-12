@@ -19,14 +19,21 @@ Go to terraform directory:
 cd terraform/
 ```
 
+If you have `tenv` installed you can use the same version specified and tested in this repo:
+```
+tenv opentofu install
+```
+
 Init the terraform project:
 ```
 tofu init
 ```
 
-Create the VMs for testing:
+If your Incus host needs different values from the default, you may need to copy `terraform.tfvars.example` to `terraform.tfvars` and update the variables.
+
+Create 5 VMs for testing with incus, ovn, and ceph cluster:
 ```
-tofu apply
+tofu apply -target=module.baremetal
 ```
 
 ### Run the Ansible Playbook
