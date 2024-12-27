@@ -19,7 +19,7 @@ Go to terraform directory:
 cd terraform/
 ```
 
-If you have `tenv` installed you can use the same version specified and tested in this repo:
+If you have `tenv` installed you can use the same version specified (`.opentofu-version`) and tested in this repo:
 ```
 tenv opentofu install
 ```
@@ -42,10 +42,19 @@ Go to the ansible directory:
 cd ../ansible/
 ```
 
+NOTE: If you need the same version of ansible this was tested with:
+```
+pyenv install 3.13.1
+pipenv --python "3.13.1" install
+pipenv shell
+ansible-galaxy install -r ansible_requirements.yml
+```
+
 Copy the example inventory file:
 ```
 cp hosts.yaml.example hosts.yaml
 ```
+NOTE: If you are connecting to a remote incus host you will need to change the `ansible_incus_remote` variable to match the name of the Incus remote (see: `incus remote list` for a list of remote names to use).
 
 Run the Playbooks:
 ```
@@ -57,6 +66,32 @@ destroy`), you need to make sure to also clear any local state from the
 `data` directory, failure to do so will cause Ceph/OVN to attempt
 connection to the previously deployed systems which will cause the
 deployment to get stuck.
+```
+rm ansible/data/ceph/*
+rm ansible/data/lvmcluster/*
+rm ansible/data/ovn/*
+```
+
+### Test a VM and Contrainer on the new Incus cluster
+
+```
+# Open a shell on one of the Incus cluster nodes
+incus exec server01 bash
+
+# List all instances
+incus list
+
+# Launch a system container
+incus launch images:ubuntu/22.04 ubuntu-container
+
+# Launch a virtual machine
+incus launch images:ubuntu/22.04 ubuntu-vm --vm
+
+# Launch an application container
+incus remote add oci-docker https://docker.io --protocol=oci
+incus launch oci-docker:hello-world --ephemeral --console
+incus launch oci-docker:nginx nginx-app-container
+```
 
 ## Deploying against production systems
 ### Requirements (when using Incus with both Ceph and OVN)
