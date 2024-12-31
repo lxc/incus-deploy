@@ -10,7 +10,7 @@ jobs:
     permissions:
       pull-requests: read  # for tim-actions/get-pr-commits to get list of commits from the PR
     name: Signed-off-by (DCO)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Get PR Commits
       id: 'get-pr-commits'
@@ -27,21 +27,14 @@ jobs:
     permissions:
       contents: none
     name: Branch target
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Check branch target
       env:
         TARGET: ${{ github.event.pull_request.base.ref }}
-        TITLE: ${{ github.event.pull_request.title }}
       run: |
-        set -eux
-        TARGET_FROM_PR_TITLE="$(echo "${TITLE}" | sed -n 's/.*(\(stable-[0-9]\.[0-9]\))$/\1/p')"
-        if [ -z "${TARGET_FROM_PR_TITLE}" ]; then
-          TARGET_FROM_PR_TITLE="main"
-        else
-          echo "Branch target overridden from PR title"
-        fi
-        [ "${TARGET}" = "${TARGET_FROM_PR_TITLE}" ] && exit 0
+        set -x
+        [ "${TARGET}" = "main" ] && exit 0
 
-        echo "Invalid branch target: ${TARGET} != ${TARGET_FROM_PR_TITLE}"
+        echo "Invalid branch target: ${TARGET}"
         exit 1
