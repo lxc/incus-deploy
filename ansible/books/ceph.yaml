@@ -12,7 +12,7 @@
     task_client_admin_keyring: ../data/ceph/cluster.{{ task_fsid }}.client.admin.keyring
     task_mon_keyring: ../data/ceph/cluster.{{ task_fsid }}.mon.keyring
     task_mon_map: ../data/ceph/cluster.{{ task_fsid }}.mon.map
-    task_release: "{{ ceph_release | default('reef') }}"
+    task_release: "{{ ceph_release | default('squid') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
 
     task_release_majors:
@@ -23,6 +23,7 @@
       pacific: 16
       quincy: 17
       reef: 18
+      squid: 19
   any_errors_fatal: true
   tasks:
     - name: Generate mon keyring
@@ -84,7 +85,7 @@
   gather_subset:
     - "distribution_release"
   vars:
-    task_release: "{{ ceph_release | default('reef') }}"
+    task_release: "{{ ceph_release | default('squid') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
   any_errors_fatal: true
   tasks:
