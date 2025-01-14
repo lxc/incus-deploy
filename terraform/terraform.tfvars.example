@@ -1,0 +1,18 @@
+# Example of terraform.tfvars
+#
+# You can copy the contents of this file to terraform.tfvars and modify
+# values for your own setup to operate with values different from the defaults
+#
+# A terraform.tfvars will override any other defined variables such as the ones
+# in *.auto.tfvars or defaults in variables.tf
+# https://opentofu.org/docs/language/values/variables/#variable-definitions-tfvars-files
+# https://opentofu.org/docs/language/values/variables/#variable-definition-precedence
+
+# Incus variables
+incus_remote         = "local"    # Name of the Incus remote to deploy on (see `incus remote list`)
+incus_storage_pool   = "default"  # Name of the storage pool to use for the VMs and volumes
+incus_network        = "incusbr0" # Name of the network to use for the VMs
+
+# OVN uplink configuration
+ovn_uplink_ipv4_address = "172.31.254.1/24"
+ovn_uplink_ipv6_address = "fd00:1e4d:637d:1234::1/64"

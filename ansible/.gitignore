@@ -1,2 +1,3 @@
 data/*
 hosts.yaml
+Pipfile.lock
