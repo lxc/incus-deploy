@@ -1,83 +1,4 @@
 ---
-- name: Ceph - Generate cluster keys and maps
-  hosts: all
-  order: shuffle
-  gather_facts: yes
-  gather_subset:
-    - "default_ipv4"
-    - "default_ipv6"
-  vars:
-    task_fsid: "{{ ceph_fsid | default('') }}"
-    task_bootstrap_osd_keyring: ../data/ceph/cluster.{{ task_fsid }}.bootstrap-osd.keyring
-    task_client_admin_keyring: ../data/ceph/cluster.{{ task_fsid }}.client.admin.keyring
-    task_mon_keyring: ../data/ceph/cluster.{{ task_fsid }}.mon.keyring
-    task_mon_map: ../data/ceph/cluster.{{ task_fsid }}.mon.map
-    task_release: "{{ ceph_release | default('squid') }}"
-    task_roles: "{{ ceph_roles | default([]) }}"
-
-    task_release_majors:
-      luminous: 12
-      mimic: 13
-      nautilus: 14
-      octopus: 15
-      pacific: 16
-      quincy: 17
-      reef: 18
-      squid: 19
-  any_errors_fatal: true
-  tasks:
-    - name: Generate mon keyring
-      delegate_to: 127.0.0.1
-      shell:
-        cmd: ceph-authtool --create-keyring {{ task_mon_keyring }} --gen-key -n mon. --cap mon 'allow *'
-        creates: '{{ task_mon_keyring }}'
-      throttle: 1
-      when: 'task_fsid'
-
-    - name: Generate client.admin keyring
-      delegate_to: 127.0.0.1
-      shell:
-        cmd: ceph-authtool --create-keyring {{ task_client_admin_keyring }} --gen-key -n client.admin --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'
-        creates: '{{ task_client_admin_keyring }}'
-      throttle: 1
-      notify: Add key to client.admin keyring
-      when: 'task_fsid'
-
-    - name: Generate bootstrap-osd keyring
-      delegate_to: 127.0.0.1
-      shell:
-        cmd: ceph-authtool --create-keyring {{ task_bootstrap_osd_keyring }} --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd' --cap mgr 'allow r'
-        creates: '{{ task_bootstrap_osd_keyring }}'
-      throttle: 1
-      notify: Add key to bootstrap-osd keyring
-      when: 'task_fsid'
-
-    - name: Generate mon map
-      delegate_to: 127.0.0.1
-      shell:
-        cmd: monmaptool --create{% if task_release_majors[task_release] | default(None) %} --set-min-mon-release={{ task_release_majors[task_release] }}{% endif %} --fsid {{ task_fsid }} {{ task_mon_map }}
-        creates: '{{ task_mon_map }}'
-      throttle: 1
-      notify: Add nodes to mon map
-      when: 'task_fsid'
-
-  handlers:
-    - name: Add key to client.admin keyring
-      delegate_to: 127.0.0.1
-      shell:
-        cmd: ceph-authtool {{ task_mon_keyring }} --import-keyring {{ task_client_admin_keyring }}
-
-    - name: Add key to bootstrap-osd keyring
-      delegate_to: 127.0.0.1
-      shell:
-        cmd: ceph-authtool {{ task_mon_keyring }} --import-keyring {{ task_bootstrap_osd_keyring }}
-
-    - name: Add nodes to mon map
-      delegate_to: 127.0.0.1
-      shell:
-        cmd: monmaptool --add {{ item.name }} {{ item.ip }} {{ task_mon_map }}
-      loop: "{{ lookup('template', '../files/ceph/ceph.monitors.tpl') | from_yaml | default([]) }}"
-
 - name: Ceph - Add package repository
   hosts: all
   order: shuffle
@@ -190,6 +111,85 @@
         install_recommends: no
         state: present
       when: '"rgw" in task_roles'
+
+- name: Ceph - Generate cluster keys and maps
+  hosts: all
+  order: shuffle
+  gather_facts: yes
+  gather_subset:
+    - "default_ipv4"
+    - "default_ipv6"
+  vars:
+    task_fsid: "{{ ceph_fsid | default('') }}"
+    task_bootstrap_osd_keyring: ../data/ceph/cluster.{{ task_fsid }}.bootstrap-osd.keyring
+    task_client_admin_keyring: ../data/ceph/cluster.{{ task_fsid }}.client.admin.keyring
+    task_mon_keyring: ../data/ceph/cluster.{{ task_fsid }}.mon.keyring
+    task_mon_map: ../data/ceph/cluster.{{ task_fsid }}.mon.map
+    task_release: "{{ ceph_release | default('squid') }}"
+    task_roles: "{{ ceph_roles | default([]) }}"
+
+    task_release_majors:
+      luminous: 12
+      mimic: 13
+      nautilus: 14
+      octopus: 15
+      pacific: 16
+      quincy: 17
+      reef: 18
+      squid: 19
+  any_errors_fatal: true
+  tasks:
+    - name: Generate mon keyring
+      delegate_to: 127.0.0.1
+      shell:
+        cmd: ceph-authtool --create-keyring {{ task_mon_keyring }} --gen-key -n mon. --cap mon 'allow *'
+        creates: '{{ task_mon_keyring }}'
+      throttle: 1
+      when: 'task_fsid'
+
+    - name: Generate client.admin keyring
+      delegate_to: 127.0.0.1
+      shell:
+        cmd: ceph-authtool --create-keyring {{ task_client_admin_keyring }} --gen-key -n client.admin --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'
+        creates: '{{ task_client_admin_keyring }}'
+      throttle: 1
+      notify: Add key to client.admin keyring
+      when: 'task_fsid'
+
+    - name: Generate bootstrap-osd keyring
+      delegate_to: 127.0.0.1
+      shell:
+        cmd: ceph-authtool --create-keyring {{ task_bootstrap_osd_keyring }} --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd' --cap mgr 'allow r'
+        creates: '{{ task_bootstrap_osd_keyring }}'
+      throttle: 1
+      notify: Add key to bootstrap-osd keyring
+      when: 'task_fsid'
+
+    - name: Generate mon map
+      delegate_to: 127.0.0.1
+      shell:
+        cmd: monmaptool --create{% if task_release_majors[task_release] | default(None) %} --set-min-mon-release={{ task_release_majors[task_release] }}{% endif %} --fsid {{ task_fsid }} {{ task_mon_map }}
+        creates: '{{ task_mon_map }}'
+      throttle: 1
+      notify: Add nodes to mon map
+      when: 'task_fsid'
+
+  handlers:
+    - name: Add key to client.admin keyring
+      delegate_to: 127.0.0.1
+      shell:
+        cmd: ceph-authtool {{ task_mon_keyring }} --import-keyring {{ task_client_admin_keyring }}
+
+    - name: Add key to bootstrap-osd keyring
+      delegate_to: 127.0.0.1
+      shell:
+        cmd: ceph-authtool {{ task_mon_keyring }} --import-keyring {{ task_bootstrap_osd_keyring }}
+
+    - name: Add nodes to mon map
+      delegate_to: 127.0.0.1
+      shell:
+        cmd: monmaptool --add {{ item.name }} {{ item.ip }} {{ task_mon_map }}
+      loop: "{{ lookup('template', '../files/ceph/ceph.monitors.tpl') | from_yaml | default([]) }}"
 
 - name: Ceph - Set up config and keyrings
   hosts: all
