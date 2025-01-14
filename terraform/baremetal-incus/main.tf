@@ -17,9 +17,9 @@ resource "incus_network" "this" {
   description = "Network used to test incus-deploy (OVN uplink)"
 
   config = {
-    "ipv4.address" = "172.31.254.1/24"
+    "ipv4.address" = var.ovn_uplink_ipv4_address
     "ipv4.nat"     = "true"
-    "ipv6.address" = "fd00:1e4d:637d:1234::1/64"
+    "ipv6.address" = var.ovn_uplink_ipv6_address
     "ipv6.nat"     = "true"
   }
 }
@@ -49,7 +49,7 @@ resource "incus_profile" "this" {
     name = "eth0"
 
     properties = {
-      "network" = "incusbr0"
+      "network" = var.network
       "name"    = "eth0"
     }
   }

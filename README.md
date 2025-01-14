@@ -25,6 +25,10 @@ tofu init
 ```
 
 Create 5 VMs and associated networks and storage volumes for testing an Incus cluster:
+If your Incus host needs different values from the default, you may need
+to copy `terraform.tfvars.example` to `terraform.tfvars` and update the
+variables.
+
 ```
 tofu apply -target=module.baremetal
 ```

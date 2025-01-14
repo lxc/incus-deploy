@@ -5,7 +5,12 @@ module "baremetal" {
   instance_names = ["server01", "server02", "server03", "server04", "server05"]
   image          = "images:ubuntu/22.04"
   memory         = "4GiB"
-  storage_pool   = "default"
+
+  storage_pool = var.incus_storage_pool
+  network      = var.incus_network
+
+  ovn_uplink_ipv4_address = var.ovn_uplink_ipv4_address
+  ovn_uplink_ipv6_address = var.ovn_uplink_ipv6_address
 }
 
 module "services" {
@@ -14,5 +19,7 @@ module "services" {
   project_name   = "dev-incus-deploy-services"
   instance_names = ["ceph-mds01", "ceph-mds02", "ceph-mds03", "ceph-mgr01", "ceph-mgr02", "ceph-mgr03", "ceph-rgw01", "ceph-rgw02", "ceph-rgw03"]
   image          = "images:ubuntu/24.04"
-  storage_pool   = "default"
+
+  storage_pool = var.incus_storage_pool
+  network      = var.incus_network
 }
