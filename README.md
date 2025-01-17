@@ -70,7 +70,7 @@ rm ansible/data/lvmcluster/*
 rm ansible/data/ovn/*
 ```
 
-### Test a VM and Contrainer on the new Incus cluster
+### Test a VM and Container on the new Incus cluster
 
 ```
 # Open a shell on one of the Incus cluster nodes
