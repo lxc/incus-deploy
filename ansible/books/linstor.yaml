@@ -1,0 +1,147 @@
+---
+- name: Linstor - Add package repository
+  hosts: all
+  order: shuffle
+  vars:
+    task_roles: "{{ linstor_roles | default([]) }}"
+  any_errors_fatal: true
+  tasks:
+    # NOTE: this is a workaround for adding the Linbit PPA. Maybe we could add
+    # the source file directly like we do with OVN to bypass the need for this
+    # extra package.
+    - name: Install gnupg
+      apt:
+        name:
+          - gnupg
+        state: present
+      when: 'task_roles|length > 0'
+
+    - name: Add repository
+      apt_repository:
+        repo: ppa:linbit/linbit-drbd9-stack
+        state: present
+      notify: Update apt
+      when: 'task_roles|length > 0'
+
+  handlers:
+    - name: Update apt
+      apt:
+        force_apt_get: yes
+        update_cache: yes
+        cache_valid_time: 0
+
+- name: Linstor - Install packages
+  hosts: all
+  order: shuffle
+  vars:
+    task_roles: "{{ linstor_roles | default([]) }}"
+  any_errors_fatal: true
+  tasks:
+    - name: Install linstor-satellite
+      apt:
+        name:
+          - lvm2
+          - zfsutils-linux
+          - drbd-dkms
+          - drbd-utils
+          - linstor-satellite
+        state: present
+      when: '"satellite" in task_roles'
+
+    - name: Install linstor-controller
+      apt:
+        name:
+          - linstor-controller
+          - linstor-client
+        state: present
+      when: '"controller" in task_roles'
+
+- name: Linstor - Enable services
+  hosts: all
+  order: shuffle
+  vars:
+    task_roles: "{{ linstor_roles | default([]) }}"
+  any_errors_fatal: true
+  tasks:
+    - name: Enable linstor-satellite
+      systemd:
+        service: linstor-satellite
+        state: started
+        enabled: true
+      when: '"satellite" in task_roles'
+
+    - name: Enable linstor-controller
+      systemd:
+        service: linstor-controller
+        state: started
+        enabled: true
+      when: '"controller" in task_roles'
+
+- name: Linstor - Add satellite nodes
+  hosts: all
+  order: shuffle
+  vars:
+    task_roles: "{{ linstor_roles | default([]) }}"
+  any_errors_fatal: true
+  tasks:
+    - name: List satellite nodes
+      shell: linstor --machine-readable node list
+      register: satellite_nodes_output
+      changed_when: false
+      when: '"controller" in task_roles'
+
+    - name: Parse satellite node names
+      set_fact:
+        existing_satellite_nodes: "{{ satellite_nodes_output.stdout | from_json | json_query('[].name') }}"
+      when: '"controller" in task_roles'
+
+    - name: Add satellite nodes
+      shell: linstor node create {{ item }} {{ hostvars[item].ansible_facts.default_ipv4.address }} --node-type satellite
+      register: create_node_output
+      loop: "{{ groups['all'] }}"
+      when: '("controller" in task_roles) and ("satellite" in hostvars[item]["linstor_roles"]) and (item not in existing_satellite_nodes)'
+      changed_when: "create_node_output.rc == 0"
+
+- name: Linstor - Create storage pools
+  hosts: all
+  order: shuffle
+  vars:
+    task_roles: "{{ linstor_roles | default([]) }}"
+    pool_name: "{{ linstor_pool_name | default('incus') }}"
+    provider_kind: "{{ linstor_pool_driver | default('lvmthin') }}"
+    task_disks: "{{ linstor_disks | default([]) | map('regex_replace', '^((?!/dev/disk/by-id/).*)$', '/dev/disk/by-id/\\1') | list }}"
+  any_errors_fatal: true
+  tasks:
+    - name: Gather all satellite hosts
+      set_fact:
+        satellite_hosts: >-
+          {{ groups['all']
+             | map('extract', hostvars)
+             | selectattr('linstor_roles', 'defined')
+             | selectattr('linstor_roles', 'contains', 'satellite')
+             | map(attribute='inventory_hostname')
+             | list }}
+
+    - name: List storage pools
+      shell: linstor --machine-readable storage-pool list
+      register: storage_pool_output
+      changed_when: false
+      when: '"controller" in task_roles'
+
+    - name: Parse storage pools
+      set_fact:
+        satellites_without_storage_pools: >-
+          {{
+            satellite_hosts | difference(
+              storage_pool_output.stdout | from_json | json_query('[0][?provider_kind!=`DISKLESS`].node_name') | unique
+            )
+          }}
+      changed_when: false
+      when: '"controller" in task_roles'
+
+    - name: Create storage pool
+      shell: linstor physical-storage create-device-pool --storage-pool {{ pool_name }} --pool-name linstor-{{ pool_name }} {{ provider_kind }} {{ item }} {{ task_disks | join(' ') }}
+      register: create_storage_pool_output
+      loop: "{{ groups['all'] }}"
+      when: '("controller" in task_roles) and ("satellite" in hostvars[item]["linstor_roles"]) and (item in satellites_without_storage_pools)'
+      changed_when: "create_storage_pool_output.rc == 0"
