@@ -32,6 +32,9 @@ resource "incus_profile" "this" {
   config = {
     "limits.cpu"    = "4"
     "limits.memory" = var.memory
+    # NOTE: this is needed to allow loading the DRBD kernel module
+    # on instances for Linstor storage
+    "security.secureboot" = false
   }
 
   device {
