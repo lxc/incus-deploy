@@ -1,0 +1,7 @@
+# Managed by Ansible, do not modify.
+Types: deb
+URIs: https://ppa.launchpadcontent.net/linbit/linbit-drbd9-stack/ubuntu
+Suites: {{ ansible_distribution_release }}
+Components: main
+Architectures: {{ dpkg_architecture.stdout }}
+Signed-By: /etc/apt/keyrings/ansible-linstor-ppa.asc
