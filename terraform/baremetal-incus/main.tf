@@ -137,6 +137,19 @@ resource "incus_storage_volume" "disk4" {
   }
 }
 
+resource "incus_storage_volume" "disk5" {
+  for_each = var.instance_names
+
+  project      = incus_project.this.name
+  name         = "${each.value}-disk5"
+  description  = "Linstor drive"
+  pool         = var.storage_pool
+  content_type = "block"
+  config = {
+    "size" = "50GiB"
+  }
+}
+
 resource "incus_instance" "instances" {
   for_each = var.instance_names
 
@@ -176,6 +189,17 @@ resource "incus_instance" "instances" {
       "pool"   = var.storage_pool
       "io.bus" = "nvme"
       "source" = incus_storage_volume.disk3[each.key].name
+    }
+  }
+
+  device {
+    type = "disk"
+    name = "disk5"
+
+    properties = {
+      "pool"   = var.storage_pool
+      "io.bus" = "nvme"
+      "source" = incus_storage_volume.disk5[each.key].name
     }
   }
 
