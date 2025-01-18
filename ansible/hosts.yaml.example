@@ -9,6 +9,9 @@ all:
     incus_name: "baremetal"
     incus_release: "stable"
 
+    linstor_pool_name: "incus"
+    linstor_pool_driver: "lvmthin"
+
     lvmcluster_name: "baremetal"
 
     ovn_name: "baremetal"
@@ -61,6 +64,11 @@ all:
               local_config:
                 source: "incus_{{ incus_name }}"
               description: Distributed storage pool (cluster-wide)
+#            linstor:
+#              driver: linstor
+#              local_config:
+#                source: "{{ linstor_pool_name }}"
+#              description: Linstor storage pool (cluster-wide)
             shared:
               driver: lvmcluster
               local_config:
@@ -94,6 +102,12 @@ all:
           ovn_roles:
             - central
             - host
+
+          linstor_roles:
+            - controller
+            - satellite
+          linstor_disks:
+            - nvme-QEMU_NVMe_Ctrl_incus_disk5
         server02:
           ceph_disks:
             - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
@@ -108,6 +122,11 @@ all:
           ovn_roles:
             - central
             - host
+
+          linstor_roles:
+            - satellite
+          linstor_disks:
+            - nvme-QEMU_NVMe_Ctrl_incus_disk5
         server03:
           ceph_disks:
             - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
@@ -122,6 +141,11 @@ all:
           ovn_roles:
             - central
             - host
+
+          linstor_roles:
+            - satellite
+          linstor_disks:
+            - nvme-QEMU_NVMe_Ctrl_incus_disk5
         server04:
           ceph_disks:
             - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
@@ -130,6 +154,11 @@ all:
             - client
             - osd
             - rgw
+
+          linstor_roles:
+            - satellite
+          linstor_disks:
+            - nvme-QEMU_NVMe_Ctrl_incus_disk3
         server05:
           ceph_disks:
             - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
@@ -138,3 +167,8 @@ all:
             - client
             - osd
             - rgw
+
+          linstor_roles:
+            - satellite
+          linstor_disks:
+            - nvme-QEMU_NVMe_Ctrl_incus_disk5
