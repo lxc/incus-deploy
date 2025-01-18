@@ -2,7 +2,7 @@ module "baremetal" {
   source = "./baremetal-incus"
 
   project_name   = "dev-incus-deploy"
-  instance_names = ["server01", "server02", "server03", "server04", "server05"]
+  instance_names = var.instance_names
   image          = "images:ubuntu/22.04"
   memory         = "4GiB"
 
