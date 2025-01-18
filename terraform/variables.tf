@@ -3,6 +3,11 @@ variable "incus_remote" {
   default = "local"
 }
 
+variable "incus_instance_names" {
+  type    = list(string)
+  default = ["server01", "server02", "server03", "server04", "server05"]
+}
+
 variable "incus_image" {
   type    = string
   default = "ubuntu/22.04"
