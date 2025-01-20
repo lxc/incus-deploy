@@ -3,7 +3,7 @@ module "baremetal" {
 
   project_name   = "dev-incus-deploy"
   instance_names = ["server01", "server02", "server03", "server04", "server05"]
-  image          = "images:ubuntu/22.04"
+  image          = "images:${var.incus_image}"
   memory         = "4GiB"
 
   storage_pool = var.incus_storage_pool
@@ -18,7 +18,7 @@ module "services" {
 
   project_name   = "dev-incus-deploy-services"
   instance_names = ["ceph-mds01", "ceph-mds02", "ceph-mds03", "ceph-mgr01", "ceph-mgr02", "ceph-mgr03", "ceph-rgw01", "ceph-rgw02", "ceph-rgw03"]
-  image          = "images:ubuntu/24.04"
+  image          = "images:${var.incus_image}"
 
   storage_pool = var.incus_storage_pool
   network      = var.incus_network

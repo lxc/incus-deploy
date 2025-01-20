@@ -3,6 +3,11 @@ variable "incus_remote" {
   default = "local"
 }
 
+variable "incus_image" {
+  type    = string
+  default = "ubuntu/22.04"
+}
+
 variable "incus_storage_pool" {
   type    = string
   default = "default"
