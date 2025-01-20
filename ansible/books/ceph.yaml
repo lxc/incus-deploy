@@ -48,7 +48,11 @@
 - name: Ceph - Install packages
   hosts: all
   order: shuffle
+  gather_facts: yes
+  gather_subset:
+    - "distribution_release"
   vars:
+    task_release: "{{ ceph_release | default('squid') }}"
     task_roles: "{{ ceph_roles | default([]) }}"
   any_errors_fatal: true
   tasks:
@@ -68,12 +72,19 @@
         state: present
       when: '"mon" in task_roles'
 
+    - name: Install ceph-mgr dependencies
+      apt:
+        name:
+          - python3-distutils
+        install_recommends: no
+        state: present
+      when: '"mgr" in task_roles and task_release != "distro"'
+
     - name: Install ceph-mgr
       apt:
         name:
           - ceph-mgr
           - python3-bcrypt
-          - python3-distutils
         install_recommends: no
         state: present
       when: '"mgr" in task_roles'
@@ -90,11 +101,18 @@
       apt:
         name:
           - ceph-osd
-          - ceph-volume
           - python3-packaging
         install_recommends: no
         state: present
       when: '"osd" in task_roles'
+
+    - name: Install ceph-volume
+      apt:
+        name:
+          - ceph-volume
+        install_recommends: no
+        state: present
+      when: '"osd" in task_roles and (task_release != "distro" or ansible_distribution_release not in ("bookworm", "focal"))'
 
     - name: Install ceph-rbd-mirror
       apt:
