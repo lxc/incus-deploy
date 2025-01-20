@@ -14,6 +14,9 @@ all:
     ovn_az_name: "zone1"
     ovn_release: "ppa"
   children:
+    ceph_gen_host:
+      hosts:
+        server01: # The host used to generate ceph cluster keys and maps
     baremetal:
       vars:
         ansible_connection: incus
