@@ -22,3 +22,8 @@ variable "ovn_uplink_ipv6_address" {
   type    = string
   default = "fd00:1e4d:637d:1234::1/64"
 }
+
+variable "instance_names" {
+  type    = list(string)
+  default = ["server01", "server02", "server03", "server04", "server05"]
+}
