@@ -52,6 +52,7 @@
   gather_subset:
     - "default_ipv4"
     - "default_ipv6"
+    - "distribution_release"
   vars:
     task_init: "{{ incus_init | default('{}') }}"
     task_ip_address: "{{ incus_ip_address | default(ansible_default_ipv6['address'] | default(ansible_default_ipv4['address'])) }}"
@@ -102,6 +103,14 @@
         install_recommends: no
         state: present
       when: "task_roles | length > 0 and 'lvm' in task_init['storage'] | dict2items | json_query('[].value.driver')"
+
+    - name: Install ZFS dependencies
+      apt:
+        name:
+          - zfs-dkms
+        install_recommends: yes
+        state: present
+      when: "task_roles | length > 0 and 'zfs' in task_init['storage'] | dict2items | json_query('[].value.driver') and ansible_distribution == 'Debian'"
 
     - name: Install ZFS tools
       apt:
