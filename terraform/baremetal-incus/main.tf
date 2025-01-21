@@ -30,8 +30,9 @@ resource "incus_profile" "this" {
   description = "Profile to be used by the cluster VMs"
 
   config = {
-    "limits.cpu"    = "4"
-    "limits.memory" = var.memory
+    "limits.cpu"          = "4"
+    "limits.memory"       = var.memory
+    "security.secureboot" = "false"
   }
 
   device {
