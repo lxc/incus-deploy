@@ -11,9 +11,15 @@ permissions:
 jobs:
   end-to-end:
     name: End to end testing
+    timeout-minutes: 45
     strategy:
       fail-fast: false
-    timeout-minutes: 45
+      matrix:
+        os:
+          - debian/12
+          - ubuntu/20.04
+          - ubuntu/22.04
+          - ubuntu/24.04
     runs-on:
       - self-hosted
       - cpu-16
@@ -50,7 +56,7 @@ jobs:
         run: |
           cd terraform
           tofu init
-          tofu apply -auto-approve -target=module.baremetal
+          tofu apply -auto-approve -target=module.baremetal -var incus_image=${{ matrix.os }}
 
       - name: Waiting for VMs to boot up
         run: |
@@ -60,6 +66,12 @@ jobs:
         run: |
           cd ansible
           cp hosts.yaml.example hosts.yaml
+
+          if [ "${{ matrix.os }}" = "ubuntu/20.04" ]; then
+            # Ubuntu 20.04's OVN is too old.
+            sed -i "s/ovn_release:.*/ovn_release: \"ppa\"/g" hosts.yaml
+          fi
+
           ansible-playbook deploy.yaml
 
       - name: Post deployment validation

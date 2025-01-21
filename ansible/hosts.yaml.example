@@ -4,6 +4,7 @@ all:
     ceph_rbd_cache: "2048Mi"
     ceph_rbd_cache_max: "1792Mi"
     ceph_rbd_cache_target: "1536Mi"
+    ceph_release: "distro"
 
     incus_name: "baremetal"
     incus_release: "stable"
@@ -12,7 +13,7 @@ all:
 
     ovn_name: "baremetal"
     ovn_az_name: "zone1"
-    ovn_release: "ppa"
+    ovn_release: "distro"
   children:
     baremetal:
       vars:
