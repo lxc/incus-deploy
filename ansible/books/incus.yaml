@@ -184,6 +184,12 @@
       register: cluster_add
       when: 'install.changed and "cluster" in task_roles and task_servers[0] != inventory_hostname'
 
+    - name: Wait 5s to avoid token use before valid
+      ansible.builtin.wait_for:
+        timeout: 5
+      delegate_to: localhost
+      when: 'cluster_add.changed'
+
     - name: Join the cluster
       throttle: 1
       shell:
