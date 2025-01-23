@@ -46,6 +46,15 @@ resource "incus_profile" "this" {
   }
 
   device {
+    type = "disk"
+    name = "agent"
+
+    properties = {
+      "source" = "agent:config"
+    }
+  }
+
+  device {
     type = "nic"
     name = "eth0"
 
