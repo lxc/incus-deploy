@@ -1,11 +1,11 @@
 [
   {
-    "label": "Rebuild Tofu environment",
-    "command": "tofu destroy && tofu apply -auto-approve -target=module.baremetal",
+    "label": "Reset dev environment",
+    "command": "tofu destroy && tofu apply -auto-approve -target=module.baremetal && rm ../ansible/data/ceph/*",
     "cwd": "$ZED_WORKTREE_ROOT/terraform",
     "shell": "system"
   }, {
-    "label": "Run Ansible playbook",
+    "label": "Deploy dev cluster",
     "command": "ansible-playbook deploy.yaml",
     "cwd": "$ZED_WORKTREE_ROOT/ansible",
     "shell": "system"
