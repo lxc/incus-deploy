@@ -67,6 +67,8 @@ jobs:
           cd ansible
           cp hosts.yaml.example hosts.yaml
 
+          ansible-playbook tasks/update-packages.yaml
+
           if [ "${{ matrix.os }}" = "ubuntu/20.04" ]; then
             # Ubuntu 20.04's OVN is too old.
             sed -i "s/ovn_release:.*/ovn_release: \"ppa\"/g" hosts.yaml
