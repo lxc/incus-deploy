@@ -1,10 +1,37 @@
 ---
-- name: Environment checks
+- name: Time synchronization (NTP)
   hosts: all
   order: shuffle
+  gather_facts: yes
+  gather_subset:
+    - "distribution_release"
   any_errors_fatal: true
-  gather_facts: false
   tasks:
+    - name: Install EPEL repo (rpm)
+      yum:
+        name: epel-release
+        state: present
+      when: 'ansible_distribution == "CentOS"'
+
+    - name: Install systemd-timesyncd
+      ansible.builtin.package:
+        name:
+          - systemd-timesyncd
+        state: present
+
+    - name: Enable systemd-timesyncd
+      systemd:
+        enabled: yes
+        name: systemd-timesyncd
+        state: started
+      register: enable
+
+    - name: Wait 5s for NTP sync
+      ansible.builtin.wait_for:
+        timeout: 5
+      delegate_to: localhost
+      when: enable.changed
+
     - name: Verify NTP successfully synced
       shell:
         cmd: timedatectl timesync-status
