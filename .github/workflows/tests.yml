@@ -72,6 +72,9 @@ jobs:
           if [ "${{ matrix.os }}" = "ubuntu/20.04" ]; then
             # Ubuntu 20.04's OVN is too old.
             sed -i "s/ovn_release:.*/ovn_release: \"ppa\"/g" hosts.yaml
+          elif [ "${{ matrix.os }}" = "debian/12" ]; then
+            # ZFS on Debian needs compiling which is slow, use btrfs instead
+            sed -i "s/driver: zfs/driver: btrfs/g" hosts.yaml
           fi
 
           ansible-playbook deploy.yaml
