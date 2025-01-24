@@ -39,19 +39,20 @@
 - name: LVM Cluster - Install packages and host config
   hosts: all
   order: shuffle
-  gather_facts: no
+  gather_facts: yes
+  gather_subset:
+    - "distribution_release"
   vars:
     task_name: "{{ lvmcluster_name | default('') }}"
     task_host_ids: "{{ lookup('file', '../data/lvmcluster/' + task_name + '/host_id.yaml') | from_yaml }}"
   any_errors_fatal: true
   tasks:
     - name: Install the LVM packages
-      apt:
+      ansible.builtin.package:
         name:
           - lvm2
           - lvm2-lockd
           - sanlock
-        install_recommends: no
         state: present
       when: 'task_name'
 
@@ -59,6 +60,20 @@
       template:
         src: ../files/lvmcluster/lvmlocal.conf.tpl
         dest: /etc/lvm/lvmlocal.conf
+      when: 'task_name'
+
+    - name: Enable the lvmlockd unit
+      systemd:
+        enabled: yes
+        name: lvmlockd
+        state: started
+      when: 'task_name'
+
+    - name: Enable the sanlock unit
+      systemd:
+        enabled: yes
+        name: sanlock
+        state: started
       when: 'task_name'
 
 - name: LVM Cluster - Create VGs
