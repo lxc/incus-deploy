@@ -16,6 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
+          - centos/9-Stream
           - debian/12
           - ubuntu/20.04
           - ubuntu/22.04
@@ -65,7 +66,11 @@ jobs:
       - name: Deploy the test VMs
         run: |
           cd ansible
-          cp hosts.yaml.example hosts.yaml
+          if [ "${{ matrix.os }}" = "centos/9-Stream" ]; then
+            cp hosts.yaml.example.centos hosts.yaml
+          else
+            cp hosts.yaml.example hosts.yaml
+          fi
 
           ansible-playbook tasks/update-packages.yaml
 
