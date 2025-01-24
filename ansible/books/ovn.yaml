@@ -126,6 +126,10 @@
     task_roles: "{{ ovn_roles | default([]) }}"
   any_errors_fatal: true
   tasks:
+    - name: Check if distribution is supported
+      meta: end_play
+      when: 'ansible_distribution not in ("Ubuntu", "Debian")'
+
     - name: Create apt keyring path
       file:
         path: /etc/apt/keyrings/
@@ -180,6 +184,10 @@
     task_ic_southbound: "{{ lookup('template', '../files/ovn/ovn-ic.servers.tpl') | from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\\1]:6646') | join(',') }}"
   any_errors_fatal: true
   tasks:
+    - name: Check if distribution is supported
+      meta: end_play
+      when: 'ansible_distribution not in ("Ubuntu", "Debian")'
+
     - name: Install the OVN central package
       apt:
         name:
@@ -244,6 +252,10 @@
     task_pki_path: "../data/ovn/{{ task_name }}/"
   any_errors_fatal: true
   tasks:
+    - name: Check if distribution is supported
+      meta: end_play
+      when: 'ansible_distribution not in ("Ubuntu", "Debian")'
+
     - name: Create OVN config directory
       file:
         path: /etc/ovn
