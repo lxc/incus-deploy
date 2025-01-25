@@ -81,7 +81,7 @@ jobs:
             sed -i "s/driver: zfs/driver: btrfs/g" $inventory_file
           fi
 
-          ansible-playbook -i $inventory_file deploy.yaml
+          ansible-playbook -i $inventory_file -v deploy.yaml
 
       - name: Post deployment validation
         run: |
