@@ -65,24 +65,23 @@ jobs:
 
       - name: Deploy the test VMs
         run: |
-          cd ansible
           if [ "${{ matrix.os }}" = "centos/9-Stream" ]; then
-            cp hosts.yaml.example.centos hosts.yaml
+            inventory_file=inventories/baremetal-centos.yaml
           else
-            cp hosts.yaml.example hosts.yaml
+            inventory_file=inventories/baremetal.yaml
           fi
 
-          ansible-playbook tasks/update-packages.yaml
+          ansible-playbook -i $inventory_file playbooks/update_packages.yaml
 
           if [ "${{ matrix.os }}" = "ubuntu/20.04" ]; then
             # Ubuntu 20.04's OVN is too old.
-            sed -i "s/ovn_release:.*/ovn_release: \"ppa\"/g" hosts.yaml
+            sed -i "s/ovn_release:.*/ovn_release: \"ppa\"/g" $inventory_file
           elif [ "${{ matrix.os }}" = "debian/12" ]; then
             # ZFS on Debian needs compiling which is slow, use btrfs instead
-            sed -i "s/driver: zfs/driver: btrfs/g" hosts.yaml
+            sed -i "s/driver: zfs/driver: btrfs/g" $inventory_file
           fi
 
-          ansible-playbook deploy.yaml
+          ansible-playbook -i $inventory_file deploy.yaml
 
       - name: Post deployment validation
         run: |
