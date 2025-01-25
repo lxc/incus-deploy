@@ -6,8 +6,8 @@
     "shell": "system"
   }, {
     "label": "Deploy dev cluster",
-    "command": "ansible-playbook deploy.yaml",
-    "cwd": "$ZED_WORKTREE_ROOT/ansible",
+    "command": "ansible-playbook -i inventories/baremetal.yaml deploy.yaml",
+    "cwd": "$ZED_WORKTREE_ROOT",
     "shell": "system"
   }
 ]
