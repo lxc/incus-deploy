@@ -34,9 +34,9 @@ tofu apply -target=module.baremetal
 ```
 
 ### Run the Ansible Playbook
-Go to the ansible directory:
+Go to the repository root directory:
 ```
-cd ../ansible/
+cd ../
 ```
 
 NOTE: If you need the same version of Ansible this was tested with:
@@ -47,15 +47,11 @@ pipenv shell
 ansible-galaxy install -r ansible_requirements.yml
 ```
 
-Copy the example inventory file:
-```
-cp hosts.yaml.example hosts.yaml
-```
 NOTE: If you are connecting to a remote Incus host you will need to change the `ansible_incus_remote` variable to match the name of the Incus remote (see: `incus remote list` for a list of remote names to use).
 
 Run the Playbooks:
 ```
-ansible-playbook deploy.yaml
+ansible-playbook -i inventories/baremetal.yaml deploy.yaml
 ```
 
 NOTE: When re-deploying the same cluster (e.g. following a `terraform destroy`),
@@ -65,9 +61,9 @@ connection to the previously deployed systems which will cause the
 deployment to get stuck.
 
 ```
-rm ansible/data/ceph/*
-rm ansible/data/lvmcluster/*
-rm ansible/data/ovn/*
+rm data/ceph/*
+rm data/lvmcluster/*
+rm data/ovn/*
 ```
 
 ### Test a VM and Container on the new Incus cluster
