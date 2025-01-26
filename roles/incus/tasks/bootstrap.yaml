@@ -1,0 +1,41 @@
+---
+- name: Bootstrap the cluster
+  shell:
+    cmd: "incus --force-local cluster enable {{ inventory_hostname }}"
+  when: '(install_deb.changed or install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] == inventory_hostname'
+
+- name: Create join tokens
+  delegate_to: "{{ incus_servers[0] }}"
+  shell:
+    cmd: "incus --force-local --quiet cluster add {{ inventory_hostname }}"
+  register: cluster_add
+  when: '(install_deb.changed or install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] != inventory_hostname'
+
+- name: Wait 5s to avoid token use before valid
+  ansible.builtin.wait_for:
+    timeout: 5
+  delegate_to: localhost
+  when: 'cluster_add.changed'
+
+- name: Join the cluster
+  throttle: 1
+  shell:
+    cmd: "incus --force-local admin init --preseed"
+    stdin: |-
+      cluster:
+        enabled: true
+        cluster_address: "{{ incus_ip_address }}"
+        cluster_token: "{{ cluster_add.stdout }}"
+        server_address: "{{ incus_ip_address }}"
+        member_config: {% for pool in incus_init.storage %}{% for key in incus_init.storage[pool].local_config | default([]) %}
+
+          - entity: storage-pool
+            name: {{ pool }}
+            key: {{ key }}
+            value: {{ incus_init.storage[pool].local_config[key] }}{% endfor %}{% endfor %}{% for network in incus_init.network %}{% for key in incus_init.network[network].local_config | default([]) %}
+
+          - entity: network
+            name: {{ network }}
+            key: {{ key }}
+            value: {{ incus_init.network[network].local_config[key] }}{% endfor %}{% endfor %}
+  when: 'cluster_add.changed'

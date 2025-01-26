@@ -1,0 +1,91 @@
+---
+- name: Install the Incus package (deb)
+  apt:
+    name:
+      - incus
+    install_recommends: no
+    state: present
+  register: install_deb
+  when: 'ansible_distribution in ("Debian", "Ubuntu") and incus_roles | length > 0'
+
+- name: Install the Incus package (rpm)
+  ansible.builtin.package:
+    name:
+      - incus
+    state: present
+  register: install_rpm
+  when: 'ansible_distribution == "CentOS" and incus_roles | length > 0'
+
+- name: Install the Incus UI package (deb)
+  apt:
+    name:
+      - incus-ui-canonical
+    install_recommends: no
+    state: present
+  when: 'ansible_distribution in ("Debian", "Ubuntu") and "ui" in incus_roles'
+
+- name: Install btrfs tools
+  ansible.builtin.package:
+    name:
+      - btrfs-progs
+    state: present
+  when: "incus_roles | length > 0 and 'btrfs' in incus_init['storage'] | dict2items | json_query('[].value.driver')"
+
+- name: Install ceph tools
+  ansible.builtin.package:
+    name:
+      - ceph-common
+    state: present
+  when: "incus_roles | length > 0 and 'ceph' in incus_init['storage'] | dict2items | json_query('[].value.driver')"
+
+- name: Install LVM tools
+  ansible.builtin.package:
+    name:
+      - lvm2
+    state: present
+  when: "incus_roles | length > 0 and 'lvm' in incus_init['storage'] | dict2items | json_query('[].value.driver')"
+
+- name: Install ZFS dependencies
+  ansible.builtin.package:
+    name:
+      - zfs-dkms
+    state: present
+  when: "incus_roles | length > 0 and 'zfs' in incus_init['storage'] | dict2items | json_query('[].value.driver') and ansible_distribution == 'Debian'"
+
+- name: Install ZFS tools
+  ansible.builtin.package:
+    name:
+      - zfsutils-linux
+    state: present
+  when: "incus_roles | length > 0 and 'zfs' in incus_init['storage'] | dict2items | json_query('[].value.driver')"
+
+- name: Set uid allocation
+  shell:
+    cmd: "usermod root --add-subuids 10000000-1009999999"
+  when: '(install_deb.changed or install_rpm.changed) and ansible_distribution == "CentOS"'
+
+- name: Set gid allocation
+  shell:
+    cmd: "usermod root --add-subgids 10000000-1009999999"
+  when: '(install_deb.changed or install_rpm.changed) and ansible_distribution == "CentOS"'
+
+- name: Enable incus socket unit
+  systemd:
+    enabled: true
+    name: incus.socket
+    state: started
+  when: 'install_deb.changed or install_rpm.changed'
+
+- name: Enable incus service unit
+  systemd:
+    enabled: true
+    name: incus.service
+    state: started
+  when: 'install_deb.changed or install_rpm.changed'
+
+- name: Enable incus startup unit
+  systemd:
+    enabled: true
+    name: incus-startup.service
+    state: started
+  when: 'install_deb.changed or install_rpm.changed'

@@ -1,0 +1,17 @@
+---
+
+- name: Apply additional configuration
+  shell:
+    cmd: "incus config set {{ item.key }}=\"{{ item.value }}\""
+  loop: "{{ incus_init['config'] | default({}) | dict2items }}"
+  when: '(install_deb.changed or install_rpm.changed) and ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))'
+
+- name: Load client certificates
+  shell:
+    cmd: "incus config trust add-certificate --name \"{{ item.key }}\" --type={{ item.value.type | default('client') }} -"
+    stdin: "{{ item.value.certificate }}"
+  loop: "{{ incus_init['clients'] | default({}) | dict2items }}"
+  when: '(install_deb.changed or install_rpm.changed) and ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))'
+- name: Run all notified handlers
+  meta: flush_handlers
+
