@@ -1,0 +1,380 @@
+---
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+- name: Add package repository (apt)
+  import_tasks: repo_apt.yaml
+  when: 'ansible_distribution in ("Ubuntu", "Debian")'
+
+- name: Add package repository (rpm)
+  import_tasks: repo_rpm.yaml
+  when: 'ansible_distribution == "CentOS"'
+
+# Ceph - Install packages
+- name: Install ceph-common
+  ansible.builtin.package:
+    name:
+      - ceph-common
+    state: present
+  when: '"client" in ceph_roles'
+
+- name: Install ceph-mon
+  ansible.builtin.package:
+    name:
+      - ceph-mon
+    state: present
+  when: '"mon" in ceph_roles'
+
+- name: Install ceph-mgr dependencies
+  ansible.builtin.package:
+    name:
+      - python3-distutils
+    state: present
+  when: 'ansible_distribution in ("Ubuntu", "Debian") and "mgr" in ceph_roles and ceph_release != "distro"'
+
+- name: Install ceph-mgr
+  ansible.builtin.package:
+    name:
+      - ceph-mgr
+    state: present
+  when: '"mgr" in ceph_roles'
+
+- name: Install ceph-mds
+  ansible.builtin.package:
+    name:
+      - ceph-mds
+    state: present
+  when: '"mds" in ceph_roles'
+
+- name: Install ceph-osd
+  ansible.builtin.package:
+    name:
+      - ceph-osd
+      - python3-packaging
+    state: present
+  when: '"osd" in ceph_roles'
+
+- name: Install ceph-volume
+  ansible.builtin.package:
+    name:
+      - ceph-volume
+    state: present
+  when: '"osd" in ceph_roles and (ceph_release != "distro" or ansible_distribution_release not in ("bookworm", "focal"))'
+
+- name: Install ceph-rbd-mirror
+  ansible.builtin.package:
+    name:
+      - rbd-mirror
+    state: present
+  when: '"rbd-mirror" in ceph_roles'
+
+- name: Install radosgw (deb)
+  ansible.builtin.package:
+    name:
+      - radosgw
+    state: present
+  when: 'ansible_distribution in ("Debian", "Ubuntu") and "rgw" in ceph_roles'
+
+- name: Install radosgw (rpm)
+  ansible.builtin.package:
+    name:
+      - ceph-radosgw
+    state: present
+  when: 'ansible_distribution == "CentOS" and "rgw" in ceph_roles'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# Ceph - Generate cluster keys and maps
+- name: Generate mon keyring
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: ceph-authtool --create-keyring {{ ceph_mon_keyring }} --gen-key -n mon. --cap mon 'allow *'
+    creates: '{{ ceph_mon_keyring }}'
+  throttle: 1
+  when: 'ceph_fsid'
+
+- name: Generate client.admin keyring
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: ceph-authtool --create-keyring {{ ceph_client_admin_keyring }} --gen-key -n client.admin --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'
+    creates: '{{ ceph_client_admin_keyring }}'
+  throttle: 1
+  notify: Add key to client.admin keyring
+  when: 'ceph_fsid'
+
+- name: Generate bootstrap-osd keyring
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: ceph-authtool --create-keyring {{ ceph_bootstrap_osd_keyring }} --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd' --cap mgr 'allow r'
+    creates: '{{ ceph_bootstrap_osd_keyring }}'
+  throttle: 1
+  notify: Add key to bootstrap-osd keyring
+  when: 'ceph_fsid'
+
+- name: Generate mon map
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: monmaptool --create{% if ceph_release_majors[ceph_release] | default(None) %} --set-min-mon-release={{ ceph_release_majors[ceph_release] }}{% endif %} --fsid {{ ceph_fsid }} {{ ceph_mon_map }}
+    creates: '{{ ceph_mon_map }}'
+  throttle: 1
+  notify: Add nodes to mon map
+  when: 'ceph_fsid'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# Ceph - Set up config and keyrings
+- name: Transfer the cluster configuration
+  template:
+    src: ceph.conf.j2
+    dest: /etc/ceph/ceph.conf
+  notify: Restart Ceph
+  when: 'ceph_roles|length > 0'
+
+- name: Create main storage directory
+  file:
+    path: /var/lib/ceph
+    owner: ceph
+    group: ceph
+    mode: 0750
+    state: directory
+  when: 'ceph_roles|length > 0 and (ceph_roles|length > 1 or ceph_roles[0] != "client")'
+
+- name: Create monitor bootstrap path
+  file:
+    path: /var/lib/ceph/bootstrap-mon
+    owner: ceph
+    group: ceph
+    mode: 0770
+    state: directory
+  when: '"mon" in ceph_roles'
+
+- name: Create OSD bootstrap path
+  file:
+    path: /var/lib/ceph/bootstrap-osd
+    owner: ceph
+    group: ceph
+    mode: 0770
+    state: directory
+  when: '"osd" in ceph_roles'
+
+- name: Transfer main admin keyring
+  copy:
+    src: '{{ ceph_client_admin_keyring }}'
+    dest: /etc/ceph/ceph.client.admin.keyring
+    owner: ceph
+    group: ceph
+    mode: 0660
+  notify: Restart Ceph
+  when: '("client" in ceph_roles and "admin" in ceph_keyrings) or "mon" in ceph_roles'
+
+- name: Transfer additional client keyrings
+  copy:
+    src: 'data/ceph/cluster.{{ ceph_fsid }}.client.{{ item }}.keyring'
+    dest: '/etc/ceph/ceph.client.{{ item }}.keyring'
+    owner: ceph
+    group: ceph
+    mode: 0660
+  with_items:
+    '{{ ceph_keyrings | difference(["admin"]) }}'
+  when: '"client" in ceph_roles'
+
+- name: Transfer bootstrap mon keyring
+  copy:
+    src: '{{ ceph_mon_keyring }}'
+    dest: /var/lib/ceph/bootstrap-mon/ceph.keyring
+    owner: ceph
+    group: ceph
+    mode: 0660
+  when: '"mon" in ceph_roles'
+
+- name: Transfer bootstrap mon map
+  copy:
+    src: '{{ ceph_mon_map }}'
+    dest: /var/lib/ceph/bootstrap-mon/ceph.monmap
+    owner: ceph
+    group: ceph
+    mode: 0660
+  when: '"mon" in ceph_roles'
+
+- name: Transfer bootstrap OSD keyring
+  copy:
+    src: '{{ ceph_bootstrap_osd_keyring }}'
+    dest: /var/lib/ceph/bootstrap-osd/ceph.keyring
+    owner: ceph
+    group: ceph
+    mode: 0660
+  when: '"osd" in ceph_roles'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# Ceph - Deploy mon
+- name: Bootstrap Ceph mon
+  shell:
+    cmd: sudo -u ceph ceph-mon --mkfs -i {{ inventory_hostname_short }} --monmap /var/lib/ceph/bootstrap-mon/ceph.monmap --keyring /var/lib/ceph/bootstrap-mon/ceph.keyring
+    creates: /var/lib/ceph/mon/ceph-{{ inventory_hostname_short }}/keyring
+  notify:
+    - Enable msgr2
+    - Disable insecure_global_id_reclaim
+  when: '"mon" in ceph_roles'
+
+- name: Enable and start Ceph mon
+  systemd:
+    enabled: yes
+    name: ceph-mon@{{ inventory_hostname_short }}
+    state: started
+  when: '"mon" in ceph_roles'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# Ceph - Deploy osd
+- name: Bootstrap Ceph OSD
+  shell:
+    cmd: ceph-volume lvm create --data /dev/disk/by-id/{{ item.data }}{% if "db" in item %} --block.db /dev/disk/by-id/{{ item.db }}{% endif %}
+    creates: /var/lib/ceph/osd/.{{ item.data }}.created
+  loop: '{{ ceph_disks }}'
+  when: '"osd" in ceph_roles'
+
+- name: Bootstrap Ceph OSD (stamp)
+  shell:
+    cmd: touch /var/lib/ceph/osd/.{{ item.data }}.created
+    creates: /var/lib/ceph/osd/.{{ item.data }}.created
+  loop: '{{ ceph_disks }}'
+  when: '"osd" in ceph_roles'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# Ceph - Deploy mgr
+- name: Create /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}
+  file:
+    path: /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}
+    owner: ceph
+    group: ceph
+    mode: 0770
+    state: directory
+  register: deploy_mgr
+  when: '"mgr" in ceph_roles'
+
+- name: Create mgr keyring
+  delegate_to: "{{ lookup('template', 'ceph.monitors.names.j2') | from_yaml | first }}"
+  shell:
+    cmd: ceph auth get-or-create mgr.{{ inventory_hostname_short }} mon 'allow profile mgr' osd 'allow *' mds 'allow *'
+  register: mgr_keyring
+  when: '"mgr" in ceph_roles and deploy_mgr.changed'
+
+- name: Transfer mgr keyring
+  copy:
+    content: "{{ mgr_keyring.stdout }}\n"
+    dest: "/var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}/keyring"
+    owner: ceph
+    group: ceph
+    mode: 0660
+  when: '"mgr" in ceph_roles and deploy_mgr.changed'
+
+- name: Enable ceph mgr
+  systemd:
+    enabled: yes
+    name: ceph-mgr@{{ inventory_hostname_short }}
+    state: started
+  when: '"mgr" in ceph_roles'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# Ceph - Deploy mds
+- name: Create /var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}
+  file:
+    path: /var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}
+    owner: ceph
+    group: ceph
+    mode: 0770
+    state: directory
+  register: deploy_mds
+  when: '"mds" in ceph_roles'
+
+- name: Create mds keyring
+  delegate_to: "{{ lookup('template', 'ceph.monitors.names.j2') | from_yaml | first }}"
+  shell:
+    cmd: ceph auth get-or-create mds.{{ inventory_hostname_short }} mon 'profile mds' mgr 'profile mds' mds 'allow *' osd 'allow *'
+  register: mds_keyring
+  when: '"mds" in ceph_roles and deploy_mds.changed'
+
+- name: Transfer mds keyring
+  copy:
+    content: "{{ mds_keyring.stdout }}\n"
+    dest: "/var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}/keyring"
+    owner: ceph
+    group: ceph
+    mode: 0660
+  when: '"mds" in ceph_roles and deploy_mds.changed'
+
+- name: Enable ceph mds
+  systemd:
+    enabled: yes
+    name: ceph-mds@{{ inventory_hostname_short }}
+    state: started
+  when: '"mds" in ceph_roles'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# Ceph - Deploy rgw
+- name: Create /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}
+  file:
+    path: /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}
+    owner: ceph
+    group: ceph
+    mode: 0770
+    state: directory
+  register: deploy_rgw
+  when: '"rgw" in ceph_roles'
+
+- name: Create Ceph rgw keyring
+  delegate_to: "{{ lookup('template', 'ceph.monitors.names.j2') | from_yaml | first }}"
+  shell:
+    cmd: ceph auth get-or-create client.rgw.{{ inventory_hostname_short }} mon 'allow rw' osd 'allow rwx'
+  register: rgw_keyring
+  when: '"rgw" in ceph_roles and deploy_rgw.changed'
+
+- name: Transfer rgw keyring
+  copy:
+    content: "{{ rgw_keyring.stdout }}\n"
+    dest: "/var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}/keyring"
+    owner: ceph
+    group: ceph
+    mode: 0660
+  when: '"rgw" in ceph_roles and deploy_rgw.changed'
+
+- name: Enable ceph rgw
+  systemd:
+    enabled: yes
+    name: ceph-radosgw@rgw.{{ inventory_hostname_short }}
+    state: started
+  when: '"rgw" in ceph_roles'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# Ceph - Deploy rbd-mirror
+- name: Enable ceph rbd-mirror
+  systemd:
+    enabled: yes
+    name: ceph-rbd-mirror@admin
+    state: started
+  when: '"rbd-mirror" in ceph_roles'
+- name: Run all notified handlers
+  meta: flush_handlers
+

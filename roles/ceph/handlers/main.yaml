@@ -1,0 +1,36 @@
+---
+- name: Update apt
+  apt:
+    force_apt_get: yes
+    update_cache: yes
+    cache_valid_time: 0
+
+- name: Add key to client.admin keyring
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: ceph-authtool {{ ceph_mon_keyring }} --import-keyring {{ ceph_client_admin_keyring }}
+
+- name: Add key to bootstrap-osd keyring
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: ceph-authtool {{ ceph_mon_keyring }} --import-keyring {{ ceph_bootstrap_osd_keyring }}
+
+- name: Add nodes to mon map
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: monmaptool --add {{ item.name }} {{ item.ip }} {{ ceph_mon_map }}
+  loop: "{{ lookup('template', 'ceph.monitors.j2') | from_yaml | default([]) }}"
+
+- name: Restart Ceph
+  systemd:
+    name: ceph.target
+    state: restarted
+
+- name: Enable msgr2
+  shell:
+    cmd: ceph mon enable-msgr2
+
+- name: Disable insecure_global_id_reclaim
+  shell:
+    cmd: ceph config set global auth_allow_insecure_global_id_reclaim false
+

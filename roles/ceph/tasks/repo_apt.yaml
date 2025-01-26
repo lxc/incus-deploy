@@ -1,0 +1,33 @@
+---
+
+- name: Create keyring path
+  file:
+    path: /etc/apt/keyrings/
+    mode: 0755
+    state: directory
+  when: 'ceph_roles|length > 0 and ceph_release != "distro"'
+
+- name: Add ceph GPG key
+  copy:
+    src: ceph.asc
+    dest: /etc/apt/keyrings/ansible-ceph.asc
+  notify: Update apt
+  when: 'ceph_roles|length > 0 and ceph_release != "distro"'
+
+- name: Get local architecture
+  shell: dpkg --print-architecture
+  register: dpkg_architecture
+  changed_when: false
+  check_mode: no
+  when: 'ceph_roles|length > 0 and ceph_release != "distro"'
+
+- name: Add ceph package sources
+  template:
+    src: ceph.sources.j2
+    dest: /etc/apt/sources.list.d/ansible-ceph.sources
+  notify: Update apt
+  when: 'ceph_roles|length > 0 and ceph_release != "distro"'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
