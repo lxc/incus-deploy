@@ -1,0 +1,4 @@
+---
+
+incus_ovn_northbound: "{{ lookup('template', '../ovn/templates/ovn-central.servers.j2') | from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\\1]:6641') | join(',') }}"
+incus_servers: "{{ lookup('template', 'incus.servers.j2') | from_yaml | sort }}"

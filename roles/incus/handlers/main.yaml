@@ -1,0 +1,11 @@
+---
+- name: Update apt
+  apt:
+    force_apt_get: yes
+    update_cache: yes
+    cache_valid_time: 0
+
+- name: Restart Incus
+  systemd:
+    name: incus.service
+    state: restarted

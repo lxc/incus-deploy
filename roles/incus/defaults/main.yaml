@@ -1,0 +1,6 @@
+---
+incus_release: 'stable'
+incus_roles: []
+incus_init: '{}'
+incus_ip_address: "{{ ansible_default_ipv6['address'] | default(ansible_default_ipv4['address']) }}"
+incus_name: ''
