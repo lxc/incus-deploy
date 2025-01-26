@@ -70,6 +70,3 @@
       - ceph-radosgw
     state: present
   when: 'ansible_distribution == "CentOS" and "rgw" in ceph_roles'
-
-- name: Run all notified handlers
-  meta: flush_handlers

@@ -25,7 +25,3 @@
     file: ceph_stable
     priority: 2
   when: 'ceph_roles|length > 0 and ceph_release != "distro"'
-
-
-- name: Run all notified handlers
-  meta: flush_handlers

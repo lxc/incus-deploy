@@ -1,5 +1,4 @@
 ---
-
 - name: Create keyring path
   file:
     path: /etc/apt/keyrings/
@@ -27,7 +26,6 @@
     dest: /etc/apt/sources.list.d/ansible-ceph.sources
   notify: Update apt
   when: 'ceph_roles|length > 0 and ceph_release != "distro"'
-
 
 - name: Run all notified handlers
   meta: flush_handlers

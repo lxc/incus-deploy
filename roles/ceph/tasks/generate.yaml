@@ -1,5 +1,4 @@
 ---
-
 - name: Generate mon keyring
   delegate_to: 127.0.0.1
   shell:

@@ -1,8 +1,4 @@
 ---
-
-- name: Run all notified handlers
-  meta: flush_handlers
-
 - name: Add package repository (apt)
   import_tasks: repo_apt.yaml
   when: 'ansible_distribution in ("Ubuntu", "Debian")'

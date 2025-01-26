@@ -1,5 +1,4 @@
 ---
-
 - name: Create /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}
   file:
     path: /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}

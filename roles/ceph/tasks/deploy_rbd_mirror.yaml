@@ -1,5 +1,4 @@
 ---
-
 - name: Enable ceph rbd-mirror
   systemd:
     enabled: yes
