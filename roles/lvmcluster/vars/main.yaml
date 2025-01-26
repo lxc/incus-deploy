@@ -1,0 +1,2 @@
+---
+lvmcluster_host_ids: "{{ lookup('file', 'data/lvmcluster/' + lvmcluster_name + '/host_id.yaml') | from_yaml }}"

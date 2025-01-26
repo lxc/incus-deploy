@@ -1,6 +1,6 @@
 # Managed by Ansible, do not modify.
 
-# Cluster is {{ task_name }}
+# Cluster is {{ lvmcluster_name }}
 
 global {
 	use_lvmlockd = 1
@@ -11,5 +11,5 @@ devices {
 }
 
 local {
-	host_id = {{ task_host_ids[inventory_hostname] }}
+	host_id = {{ lvmcluster_host_ids[inventory_hostname] }}
 }

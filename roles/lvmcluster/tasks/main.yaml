@@ -1,0 +1,98 @@
+---
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# LVM Cluster - Generate configuration
+- name: Create cluster directory
+  delegate_to: 127.0.0.1
+  file:
+    path: "data/lvmcluster/{{ lvmcluster_name }}"
+    mode: 0755
+    state: directory
+  throttle: 1
+  when: 'lvmcluster_name'
+  register: create
+
+- name: Create cluster host_id tracking
+  delegate_to: 127.0.0.1
+  throttle: 1
+  copy:
+    content: "{}"
+    dest: "data/lvmcluster/{{ lvmcluster_name }}/host_id.yaml"
+    mode: 0644
+  when: "create.changed"
+
+- name: Update cluster host_id tracking
+  delegate_to: 127.0.0.1
+  throttle: 1
+  template:
+    src: "host_id.yaml.j2"
+    dest: "data/lvmcluster/{{ lvmcluster_name }}/host_id.yaml"
+  when: 'lvmcluster_name'
+  vars:
+    lvmcluster_host_ids: "{{ lookup('file', 'data/lvmcluster/' + lvmcluster_name + '/host_id.yaml') | from_yaml }}"
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# LVM Cluster - Install packages and host config
+- name: Install the LVM packages
+  ansible.builtin.package:
+    name:
+      - lvm2
+      - lvm2-lockd
+      - sanlock
+    state: present
+  when: 'lvmcluster_name'
+
+- name: Configure for LVM cluster
+  template:
+    src: lvmlocal.conf.j2
+    dest: /etc/lvm/lvmlocal.conf
+  when: 'lvmcluster_name'
+
+- name: Enable the lvmlockd unit
+  systemd:
+    enabled: yes
+    name: lvmlockd
+    state: started
+  when: 'lvmcluster_name'
+
+- name: Enable the sanlock unit
+  systemd:
+    enabled: yes
+    name: sanlock
+    state: started
+  when: 'lvmcluster_name'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# LVM Cluster - Create VGs
+- name: Check for existing VGs
+  shell:
+    cmd: "vgs {{ item }}"
+  register: check
+  loop: "{{ lvmcluster_vgs.keys() }}"
+  run_once: true
+  changed_when: false
+  failed_when: "check.rc not in (0, 5)"
+
+- name: Create the VG (first server)
+  shell:
+    cmd: "vgcreate --shared {{ item.item }} {{ lvmcluster_vgs[item.item] }} --metadatasize={{ lvmcluster_metadata_size }}"
+  when: "item.rc == 5"
+  loop: "{{ check.results }}"
+  run_once: true
+  register: create
+
+- name: Ensure lock manager is running
+  shell:
+    cmd: "vgchange --lock-start"
+  when: "create.changed"
+- name: Run all notified handlers
+  meta: flush_handlers
+
