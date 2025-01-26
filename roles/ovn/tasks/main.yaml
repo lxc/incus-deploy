@@ -1,0 +1,291 @@
+---
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# OVN - Generate PKI certificates (central)
+- name: Create cluster directory
+  delegate_to: 127.0.0.1
+  file:
+    path: "data/ovn/{{ ovn_name }}"
+    mode: 0755
+    state: directory
+  throttle: 1
+  when: '"central" in ovn_roles or "host" in ovn_roles'
+
+- name: Create CA private key
+  delegate_to: 127.0.0.1
+  community.crypto.openssl_privatekey:
+    path: "{{ ovn_pki_path }}/ca.key"
+  register: ca_key
+  throttle: 1
+  when: '"central" in ovn_roles or "host" in ovn_roles'
+
+- name: Create CA signing request
+  delegate_to: 127.0.0.1
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ ovn_pki_path }}/ca.key"
+    common_name: "OVN CA for {{ ovn_name }}"
+    use_common_name_for_san: false
+    basic_constraints:
+      - 'CA:TRUE'
+    basic_constraints_critical: true
+    key_usage:
+      - keyCertSign
+    key_usage_critical: true
+  register: ca_csr
+  when: "ca_key.changed"
+  throttle: 1
+
+- name: Issue CA certificate
+  delegate_to: 127.0.0.1
+  community.crypto.x509_certificate:
+    path: "{{ ovn_pki_path }}/ca.crt"
+    csr_content: "{{ ca_csr.csr }}"
+    privatekey_path: "{{ ovn_pki_path }}/ca.key"
+    provider: selfsigned
+  when: "ca_csr.changed"
+  throttle: 1
+
+- name: Create server keys
+  delegate_to: 127.0.0.1
+  community.crypto.openssl_privatekey:
+    path: "{{ ovn_pki_path }}/{{ inventory_hostname }}.key"
+  register: cert_key
+  when: 'ovn_roles | length > 0'
+
+- name: Create server signing request
+  delegate_to: 127.0.0.1
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ ovn_pki_path }}/{{ inventory_hostname }}.key"
+    common_name: "OVN certificate for {{ inventory_hostname }}"
+    use_common_name_for_san: false
+  register: cert_csr
+  when: "cert_key.changed"
+
+- name: Issue server certificate
+  delegate_to: 127.0.0.1
+  community.crypto.x509_certificate:
+    path: "{{ ovn_pki_path }}/{{ inventory_hostname }}.crt"
+    csr_content: "{{ cert_csr.csr }}"
+    ownca_path: "{{ ovn_pki_path }}/ca.crt"
+    ownca_privatekey_path: "{{ ovn_pki_path }}/ca.key"
+    ownca_not_after: "+3650d"
+    ownca_not_before: "-1d"
+    provider: ownca
+  when: "cert_csr.changed"
+  throttle: 1
+
+- name: Create client keys
+  delegate_to: 127.0.0.1
+  community.crypto.openssl_privatekey:
+    path: "{{ ovn_pki_path }}/{{ item }}.key"
+  register: client_key
+  when: 'ovn_roles | length > 0'
+  loop: "{{ ovn_clients }}"
+  throttle: 1
+
+- name: Create client signing request
+  delegate_to: 127.0.0.1
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ ovn_pki_path }}/{{ item.item }}.key"
+    common_name: "OVN client certificate for {{ item.item }}"
+    use_common_name_for_san: false
+  register: client_csr
+  loop: "{{ client_key.results }}"
+  when: "client_key.changed"
+
+- name: Issue client certificate
+  delegate_to: 127.0.0.1
+  community.crypto.x509_certificate:
+    path: "{{ ovn_pki_path }}/{{ item.item.item }}.crt"
+    csr_content: "{{ item.csr }}"
+    ownca_path: "{{ ovn_pki_path }}/ca.crt"
+    ownca_privatekey_path: "{{ ovn_pki_path }}/ca.key"
+    ownca_not_after: "+3650d"
+    ownca_not_before: "-1d"
+    provider: ownca
+  loop: "{{ client_csr.results }}"
+  when: "client_csr.changed"
+  throttle: 1
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# OVN - Add package repository
+- name: Check if distribution is supported
+  meta: end_play
+  when: 'ansible_distribution not in ("Ubuntu", "Debian")'
+
+- name: Create apt keyring path
+  file:
+    path: /etc/apt/keyrings/
+    mode: 0755
+    state: directory
+  when: 'ovn_roles|length > 0 and ovn_release != "distro"'
+
+- name: Add PPA GPG key
+  copy:
+    src: ovn-ppa.asc
+    dest: /etc/apt/keyrings/ansible-ovn-ppa.asc
+  notify: Update apt
+  when: 'ovn_roles|length > 0 and ovn_release == "ppa"'
+
+- name: Get DPKG architecture
+  shell: dpkg --print-architecture
+  register: dpkg_architecture
+  changed_when: false
+  check_mode: no
+  when: 'ovn_roles|length > 0 and ovn_release != "distro"'
+
+- name: Add OVN PPA package source
+  template:
+    src: ovn-ppa.sources.j2
+    dest: /etc/apt/sources.list.d/ansible-ovn-ppa.sources
+  notify: Update apt
+  when: 'ovn_roles|length > 0 and ovn_release == "ppa"'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# OVN - Install packages
+- name: Check if distribution is supported
+  meta: end_play
+  when: 'ansible_distribution not in ("Ubuntu", "Debian")'
+
+- name: Install the OVN central package
+  apt:
+    name:
+      - ovn-central
+    install_recommends: no
+    state: present
+  when: '"central" in ovn_roles'
+
+- name: Install the OVN IC database package
+  apt:
+    name:
+      - ovn-ic-db
+    install_recommends: no
+    state: present
+  when: '"ic-db" in ovn_roles'
+
+- name: Install the OVN IC package
+  apt:
+    name:
+      - ovn-ic
+    install_recommends: no
+    state: present
+  when: '"ic" in ovn_roles'
+
+- name: Install the OVN host package
+  apt:
+    name:
+      - ovn-host
+    install_recommends: no
+    state: present
+  notify:
+    - Configure OVS
+    - Enable OVN IC gateway
+  when: '"host" in ovn_roles'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# OVN - Set up daemon configuration
+- name: Check if distribution is supported
+  meta: end_play
+  when: 'ansible_distribution not in ("Ubuntu", "Debian")'
+
+- name: Create OVN config directory
+  file:
+    path: /etc/ovn
+    mode: 0755
+    state: directory
+  when: 'ovn_roles | length > 0'
+
+- name: Transfer OVN CA certificate
+  copy:
+    src: "{{ ovn_pki_path }}/ca.crt"
+    dest: /etc/ovn/{{ ovn_name }}.ca.crt
+    mode: 0644
+  when: 'ovn_roles | length > 0'
+
+- name: Transfer OVN server certificate
+  copy:
+    src: "{{ ovn_pki_path }}/{{ inventory_hostname }}.crt"
+    dest: /etc/ovn/{{ ovn_name }}.server.crt
+    mode: 0644
+  when: 'ovn_roles | length > 0'
+
+- name: Transfer OVN server key
+  copy:
+    src: "{{ ovn_pki_path }}/{{ inventory_hostname }}.key"
+    dest: /etc/ovn/{{ ovn_name }}.server.key
+    mode: 0600
+  when: 'ovn_roles | length > 0'
+  notify:
+    - Configure OVN central northbound DB for SSL (certs)
+    - Configure OVN central northbound DB for SSL (ports)
+    - Configure OVN central southbound DB for SSL (certs)
+    - Configure OVN central southbound DB for SSL (ports)
+    - Configure OVN IC northbound DB for SSL (certs)
+    - Configure OVN IC northbound DB for SSL (ports)
+    - Configure OVN IC southbound DB for SSL (certs)
+    - Configure OVN IC southbound DB for SSL (ports)
+
+- name: Configure OVN central database
+  template:
+    src: ovn-central.j2
+    dest: /etc/default/ovn-central
+  notify:
+    - Restart OVN central
+    - Configure OVN AZ name
+    - Enable OVN IC route sharing
+  when: '"central" in ovn_roles'
+
+- name: Configure OVN host
+  template:
+    src: ovn-host.j2
+    dest: /etc/default/ovn-host
+  notify:
+    - Restart OVN host
+  when: '"host" in ovn_roles'
+
+- name: Create OVN IC override directory
+  file:
+    path: /etc/systemd/system/ovn-ic.service.d
+    mode: 0755
+    state: directory
+  when: '"ic" in ovn_roles'
+
+- name: Transfer OVN IC override
+  copy:
+    content: |
+      [Service]
+      EnvironmentFile=-/etc/default/ovn-ic
+      ExecStart=
+      ExecStart=/usr/share/ovn/scripts/ovn-ctl start_ic --no-monitor $OVN_CTL_OPTS
+    dest: /etc/systemd/system/ovn-ic.service.d/ansible.conf
+  notify: Restart OVN IC
+  when: '"ic" in ovn_roles'
+
+- name: Configure OVN IC database
+  template:
+    src: ovn-ic.j2
+    dest: /etc/default/ovn-ic
+  notify:
+    - Restart OVN IC databases
+    - Restart OVN IC
+  when: '"ic" in ovn_roles or "ic-db" in ovn_roles'
+
+- name: Transfer OVN aliases
+  template:
+    src: alias.sh.j2
+    dest: /etc/ovn/alias.sh
+  when: 'ovn_roles | length > 0'
+- name: Run all notified handlers
+  meta: flush_handlers
+
