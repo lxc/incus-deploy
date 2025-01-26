@@ -1,0 +1,41 @@
+---
+- name: Add package repository (apt)
+  import_tasks: repo_apt.yaml
+  when: 'ansible_distribution in ("Ubuntu", "Debian")'
+
+- name: Add package repository (rpm)
+  import_tasks: repo_rpm.yaml
+  when: 'ansible_distribution == "CentOS"'
+
+- name: Install packages
+  import_tasks: install.yaml
+
+- name: Generate cluster keys and maps
+  import_tasks: generate.yaml
+ 
+- name: Set up config and keyrings
+  import_tasks: config.yaml
+
+- name: Deploy mon
+  import_tasks: deploy_mon.yaml
+  when: '"mon" in ceph_roles'
+
+- name: Deploy osd
+  import_tasks: deploy_osd.yaml
+  when: '"osd" in ceph_roles'
+
+- name: Deploy mgr
+  import_tasks: deploy_mgr.yaml
+  when: '"mgr" in ceph_roles'
+
+- name: Deploy mds
+  import_tasks: deploy_mds.yaml
+  when: '"mds" in ceph_roles'
+
+- name: Deploy rgw
+  import_tasks: deploy_rgw.yaml
+  when: '"rgw" in ceph_roles'
+
+- name: Deploy rbd-mirror
+  import_tasks: deploy_rbd_mirror.yaml
+  when: '"rbd-mirror" in ceph_roles'

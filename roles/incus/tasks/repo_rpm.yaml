@@ -1,0 +1,12 @@
+---
+
+- name: Add COPR repository
+  community.general.copr:
+    chroot: "epel-9-x86_64"
+    name: "neil/incus"
+    state: enabled
+  when: 'incus_roles|length > 0 and incus_release != "distro"'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers

@@ -1,0 +1,6 @@
+---
+- name: Enable ceph rbd-mirror
+  systemd:
+    enabled: yes
+    name: ceph-rbd-mirror@admin
+    state: started

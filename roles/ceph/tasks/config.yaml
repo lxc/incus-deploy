@@ -1,0 +1,86 @@
+---
+
+- name: Transfer the cluster configuration
+  template:
+    src: ceph.conf.j2
+    dest: /etc/ceph/ceph.conf
+  notify: Restart Ceph
+  when: 'ceph_roles|length > 0'
+
+- name: Create main storage directory
+  file:
+    path: /var/lib/ceph
+    owner: ceph
+    group: ceph
+    mode: 0750
+    state: directory
+  when: 'ceph_roles|length > 0 and (ceph_roles|length > 1 or ceph_roles[0] != "client")'
+
+- name: Create monitor bootstrap path
+  file:
+    path: /var/lib/ceph/bootstrap-mon
+    owner: ceph
+    group: ceph
+    mode: 0770
+    state: directory
+  when: '"mon" in ceph_roles'
+
+- name: Create OSD bootstrap path
+  file:
+    path: /var/lib/ceph/bootstrap-osd
+    owner: ceph
+    group: ceph
+    mode: 0770
+    state: directory
+  when: '"osd" in ceph_roles'
+
+- name: Transfer main admin keyring
+  copy:
+    src: '{{ ceph_client_admin_keyring }}'
+    dest: /etc/ceph/ceph.client.admin.keyring
+    owner: ceph
+    group: ceph
+    mode: 0660
+  notify: Restart Ceph
+  when: '("client" in ceph_roles and "admin" in ceph_keyrings) or "mon" in ceph_roles'
+
+- name: Transfer additional client keyrings
+  copy:
+    src: 'data/ceph/cluster.{{ ceph_fsid }}.client.{{ item }}.keyring'
+    dest: '/etc/ceph/ceph.client.{{ item }}.keyring'
+    owner: ceph
+    group: ceph
+    mode: 0660
+  with_items:
+    '{{ ceph_keyrings | difference(["admin"]) }}'
+  when: '"client" in ceph_roles'
+
+- name: Transfer bootstrap mon keyring
+  copy:
+    src: '{{ ceph_mon_keyring }}'
+    dest: /var/lib/ceph/bootstrap-mon/ceph.keyring
+    owner: ceph
+    group: ceph
+    mode: 0660
+  when: '"mon" in ceph_roles'
+
+- name: Transfer bootstrap mon map
+  copy:
+    src: '{{ ceph_mon_map }}'
+    dest: /var/lib/ceph/bootstrap-mon/ceph.monmap
+    owner: ceph
+    group: ceph
+    mode: 0660
+  when: '"mon" in ceph_roles'
+
+- name: Transfer bootstrap OSD keyring
+  copy:
+    src: '{{ ceph_bootstrap_osd_keyring }}'
+    dest: /var/lib/ceph/bootstrap-osd/ceph.keyring
+    owner: ceph
+    group: ceph
+    mode: 0660
+  when: '"osd" in ceph_roles'
+
+- name: Run all notified handlers
+  meta: flush_handlers

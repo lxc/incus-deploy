@@ -1,0 +1,30 @@
+---
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+- name: Add package repository (apt)
+  import_tasks: repo_apt.yaml
+  when: 'ansible_distribution in ("Ubuntu", "Debian")'
+
+- name: Add package repository (rpm)
+  import_tasks: repo_rpm.yaml
+  when: 'ansible_distribution == "CentOS"'
+
+- name: Install packages and bootstrap
+  import_tasks: install.yaml
+
+- name: Configure
+  import_tasks: config.yaml
+
+- name: Networks
+  import_tasks: networks.yaml
+
+- name: Storage
+  import_tasks: storage.yaml
+
+- name: Bootstrap
+  import_tasks: storage.yaml
+
+- name: Final configuration
+  import_tasks: final.yaml

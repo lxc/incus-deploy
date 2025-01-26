@@ -1,0 +1,7 @@
+---
+ovn_clients: []
+ovn_name: ''
+ovn_roles: []
+ovn_release: 'distro'
+ovn_ip_address: "{{ ansible_default_ipv6['address'] | default(ansible_default_ipv4['address']) }}"
+ovn_az_name: ''
