@@ -1,0 +1,11 @@
+---
+
+- name: Enable ceph rbd-mirror
+  systemd:
+    enabled: yes
+    name: ceph-rbd-mirror@admin
+    state: started
+  when: '"rbd-mirror" in ceph_roles'
+
+- name: Run all notified handlers
+  meta: flush_handlers

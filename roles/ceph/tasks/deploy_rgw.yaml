@@ -1,0 +1,37 @@
+---
+
+- name: Create /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}
+  file:
+    path: /var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}
+    owner: ceph
+    group: ceph
+    mode: 0770
+    state: directory
+  register: deploy_rgw
+  when: '"rgw" in ceph_roles'
+
+- name: Create Ceph rgw keyring
+  delegate_to: "{{ lookup('template', 'ceph.monitors.names.j2') | from_yaml | first }}"
+  shell:
+    cmd: ceph auth get-or-create client.rgw.{{ inventory_hostname_short }} mon 'allow rw' osd 'allow rwx'
+  register: rgw_keyring
+  when: '"rgw" in ceph_roles and deploy_rgw.changed'
+
+- name: Transfer rgw keyring
+  copy:
+    content: "{{ rgw_keyring.stdout }}\n"
+    dest: "/var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}/keyring"
+    owner: ceph
+    group: ceph
+    mode: 0660
+  when: '"rgw" in ceph_roles and deploy_rgw.changed'
+
+- name: Enable ceph rgw
+  systemd:
+    enabled: yes
+    name: ceph-radosgw@rgw.{{ inventory_hostname_short }}
+    state: started
+  when: '"rgw" in ceph_roles'
+
+- name: Run all notified handlers
+  meta: flush_handlers

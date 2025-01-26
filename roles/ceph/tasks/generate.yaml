@@ -1,0 +1,39 @@
+---
+
+- name: Generate mon keyring
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: ceph-authtool --create-keyring {{ ceph_mon_keyring }} --gen-key -n mon. --cap mon 'allow *'
+    creates: '{{ ceph_mon_keyring }}'
+  throttle: 1
+  when: 'ceph_fsid'
+
+- name: Generate client.admin keyring
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: ceph-authtool --create-keyring {{ ceph_client_admin_keyring }} --gen-key -n client.admin --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'
+    creates: '{{ ceph_client_admin_keyring }}'
+  throttle: 1
+  notify: Add key to client.admin keyring
+  when: 'ceph_fsid'
+
+- name: Generate bootstrap-osd keyring
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: ceph-authtool --create-keyring {{ ceph_bootstrap_osd_keyring }} --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd' --cap mgr 'allow r'
+    creates: '{{ ceph_bootstrap_osd_keyring }}'
+  throttle: 1
+  notify: Add key to bootstrap-osd keyring
+  when: 'ceph_fsid'
+
+- name: Generate mon map
+  delegate_to: 127.0.0.1
+  shell:
+    cmd: monmaptool --create{% if ceph_release_majors[ceph_release] | default(None) %} --set-min-mon-release={{ ceph_release_majors[ceph_release] }}{% endif %} --fsid {{ ceph_fsid }} {{ ceph_mon_map }}
+    creates: '{{ ceph_mon_map }}'
+  throttle: 1
+  notify: Add nodes to mon map
+  when: 'ceph_fsid'
+
+- name: Run all notified handlers
+  meta: flush_handlers
