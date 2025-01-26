@@ -1,0 +1,6 @@
+---
+- name: Discover NVME targets
+  shell: nvme discover
+
+- name: Connect NVME targets
+  shell: nvme connect-all

@@ -1,0 +1,25 @@
+---
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
+# NVME - Install packages and host config
+- name: Install the NVME packages
+  ansible.builtin.package:
+    name:
+      - nvme-cli
+    state: present
+  when: 'nvme_targets | length > 0'
+
+- name: Configure NVME discovery
+  template:
+    src: discovery.conf.j2
+    dest: /etc/nvme/discovery.conf
+  when: 'nvme_targets | length > 0'
+  notify:
+   - Discover NVME targets
+   - Connect NVME targets
+
+- name: Run all notified handlers
+  meta: flush_handlers
+
