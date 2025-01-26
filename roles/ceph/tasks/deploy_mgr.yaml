@@ -7,14 +7,13 @@
     mode: 0770
     state: directory
   register: deploy_mgr
-  when: '"mgr" in ceph_roles'
 
 - name: Create mgr keyring
   delegate_to: "{{ lookup('template', 'ceph.monitors.names.j2') | from_yaml | first }}"
   shell:
     cmd: ceph auth get-or-create mgr.{{ inventory_hostname_short }} mon 'allow profile mgr' osd 'allow *' mds 'allow *'
   register: mgr_keyring
-  when: '"mgr" in ceph_roles and deploy_mgr.changed'
+  when: 'deploy_mgr.changed'
 
 - name: Transfer mgr keyring
   copy:
@@ -23,15 +22,10 @@
     owner: ceph
     group: ceph
     mode: 0660
-  when: '"mgr" in ceph_roles and deploy_mgr.changed'
+  when: 'deploy_mgr.changed'
 
 - name: Enable ceph mgr
   systemd:
     enabled: yes
     name: ceph-mgr@{{ inventory_hostname_short }}
     state: started
-  when: '"mgr" in ceph_roles'
-
-
-- name: Run all notified handlers
-  meta: flush_handlers

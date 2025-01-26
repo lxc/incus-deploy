@@ -22,18 +22,24 @@
 
 - name: Deploy mon
   import_tasks: deploy_mon.yaml
+  when: '"mon" in ceph_roles'
 
 - name: Deploy osd
   import_tasks: deploy_osd.yaml
+  when: '"osd" in ceph_roles'
 
 - name: Deploy mgr
   import_tasks: deploy_mgr.yaml
+  when: '"mgr" in ceph_roles'
 
 - name: Deploy mds
   import_tasks: deploy_mds.yaml
+  when: '"mds" in ceph_roles'
 
 - name: Deploy rgw
   import_tasks: deploy_rgw.yaml
+  when: '"rgw" in ceph_roles'
 
 - name: Deploy rbd-mirror
   import_tasks: deploy_rbd_mirror.yaml
+  when: '"rbd-mirror" in ceph_roles'

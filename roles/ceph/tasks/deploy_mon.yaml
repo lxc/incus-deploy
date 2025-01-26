@@ -6,14 +6,12 @@
   notify:
     - Enable msgr2
     - Disable insecure_global_id_reclaim
-  when: '"mon" in ceph_roles'
 
 - name: Enable and start Ceph mon
   systemd:
     enabled: yes
     name: ceph-mon@{{ inventory_hostname_short }}
     state: started
-  when: '"mon" in ceph_roles'
 
 - name: Run all notified handlers
   meta: flush_handlers

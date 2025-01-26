@@ -4,14 +4,9 @@
     cmd: ceph-volume lvm create --data /dev/disk/by-id/{{ item.data }}{% if "db" in item %} --block.db /dev/disk/by-id/{{ item.db }}{% endif %}
     creates: /var/lib/ceph/osd/.{{ item.data }}.created
   loop: '{{ ceph_disks }}'
-  when: '"osd" in ceph_roles'
 
 - name: Bootstrap Ceph OSD (stamp)
   shell:
     cmd: touch /var/lib/ceph/osd/.{{ item.data }}.created
     creates: /var/lib/ceph/osd/.{{ item.data }}.created
   loop: '{{ ceph_disks }}'
-  when: '"osd" in ceph_roles'
-
-- name: Run all notified handlers
-  meta: flush_handlers
