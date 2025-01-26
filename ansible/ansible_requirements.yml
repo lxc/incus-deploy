@@ -1,9 +1,0 @@
----
-# Install Collections and Roles with Ansible Galaxy
-# ansible-galaxy install -r ansible_requirements.yml
-
-collections:
-  - name: community.crypto
-  - name: community.general
-
-roles:

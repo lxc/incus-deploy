@@ -1,0 +1,34 @@
+---
+
+
+- name: Create apt keyring path
+  file:
+    path: /etc/apt/keyrings/
+    mode: 0755
+    state: directory
+  when: 'incus_roles|length > 0 and incus_release != "distro"'
+
+- name: Add Zabbly repository key
+  copy:
+    src: zabbly.asc
+    dest: /etc/apt/keyrings/ansible-zabbly.asc
+  notify: Update apt
+  when: 'incus_roles|length > 0 and incus_release != "distro"'
+
+- name: Get DPKG architecture
+  shell: dpkg --print-architecture
+  register: dpkg_architecture
+  changed_when: false
+  check_mode: no
+  when: 'incus_roles|length > 0 and incus_release != "distro"'
+
+- name: Add Zabbly package source
+  template:
+    src: incus.sources.j2
+    dest: /etc/apt/sources.list.d/ansible-zabbly-incus-{{ incus_release }}.sources
+  notify: Update apt
+  when: 'incus_roles|length > 0 and incus_release != "distro"'
+
+
+- name: Run all notified handlers
+  meta: flush_handlers
