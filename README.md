@@ -8,11 +8,6 @@ Install Incus stable or LTS on your system from the [zabbly/incus](https://githu
 
 Install [OpenTofu](https://opentofu.org/docs/intro/install/).
 
-Install the required ceph packages for Ansible on the controller, on Debian that's the `ceph-base` and `ceph-common` packages:
-```
-apt install --no-install-recommends ceph-base ceph-common
-```
-
 ### Create the test VMs with OpenTofu
 Go to terraform directory:
 ```
