@@ -48,6 +48,15 @@
    - `cluster`
    - `ui`: Whether to serve the Incus UI
 
+## Linstor
+
+ - `linstor_disks`: List of disks to provide to Linstor (**required**, type: list of string)
+ - `linstor_roles`: List of Linstor roles (**required**, type: list of string):
+   - `controller`: Central controller
+   - `satellite`: Client and/or storage server
+ - `linstor_pool_name`: Name of the Linstor storage pool (**required**, type: string)
+ - `linstor_pool_driver`: Name of the Linstor storage driver (**required**, type: string)
+
 ## Netplan
 Netplan doesn't make use of configuration variables, but if you wish to replace the network configuration of a server, you can do so by putting a file in `data/netplan/HOSTNAME.yaml`.
 
