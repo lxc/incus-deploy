@@ -76,6 +76,13 @@
         state: started
       when: 'task_name'
 
+    - name: Enable the wdmd unit
+      systemd:
+        enabled: yes
+        name: wdmd
+        state: started
+      when: 'task_name'
+
 - name: LVM Cluster - Create VGs
   hosts: all
   order: shuffle
