@@ -36,8 +36,6 @@ jobs:
         run: |
           sudo apt-get install --no-install-recommends --yes \
             ansible \
-            ceph-base \
-            ceph-common \
             python3-jmespath
 
       - name: Setup Incus
