@@ -27,7 +27,7 @@ jobs:
       - mem-32G
       - disk-100G
       - arch-amd64
-      - image-debian-12
+      - image-ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,13 +36,17 @@ jobs:
         run: |
           sudo apt-get install --no-install-recommends --yes \
             ansible \
-            python3-jmespath
+            python3-jmespath \
+            zfsutils-linux
 
       - name: Setup Incus
         run: |
           curl https://pkgs.zabbly.com/get/incus-daily | sudo sh
           sudo chmod 666 /var/lib/incus/unix.socket
-          incus admin init --auto
+
+          incus network create incusbr0
+          incus storage create default zfs size=80GiB
+          zfs set sync=disabled default
 
       - name: Setup OpenTofu
         run: |
