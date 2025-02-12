@@ -23,7 +23,7 @@ jobs:
           - ubuntu/24.04
     runs-on:
       - self-hosted
-      - cpu-16
+      - cpu-12
       - mem-32G
       - disk-100G
       - arch-amd64
