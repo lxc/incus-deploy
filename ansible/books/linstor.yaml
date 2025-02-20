@@ -34,7 +34,7 @@
       check_mode: no
       when: 'task_roles|length > 0'
 
-    - name: Add OVN PPA package source
+    - name: Add Linstor PPA package source
       template:
         src: ../files/linstor/linstor-ppa.sources.tpl
         dest: /etc/apt/sources.list.d/ansible-linstor-ppa.sources
