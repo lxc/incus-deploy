@@ -64,11 +64,11 @@ all:
               local_config:
                 source: "incus_{{ incus_name }}"
               description: Distributed storage pool (cluster-wide)
-#            linstor:
-#              driver: linstor
-#              local_config:
-#                source: "{{ linstor_pool_name }}"
-#              description: Linstor storage pool (cluster-wide)
+            linstor:
+              driver: linstor
+              local_config:
+                source: "{{ linstor_pool_name }}"
+              description: Linstor storage pool (cluster-wide)
             shared:
               driver: lvmcluster
               local_config:
