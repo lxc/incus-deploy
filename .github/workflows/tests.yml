@@ -11,7 +11,7 @@ permissions:
 jobs:
   end-to-end:
     name: End to end testing
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -63,7 +63,9 @@ jobs:
 
       - name: Waiting for VMs to boot up
         run: |
-          sleep 1m
+          export INCUS_PROJECT=dev-incus-deploy
+          sleep 5m
+          incus list
 
       - name: Deploy the test VMs
         run: |
