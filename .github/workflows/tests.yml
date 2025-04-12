@@ -11,7 +11,7 @@ permissions:
 jobs:
   end-to-end:
     name: End to end testing
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -63,7 +63,9 @@ jobs:
 
       - name: Waiting for VMs to boot up
         run: |
-          sleep 1m
+          export INCUS_PROJECT=dev-incus-deploy
+          sleep 5m
+          incus list
 
       - name: Deploy the test VMs
         run: |
@@ -75,6 +77,11 @@ jobs:
           fi
 
           ansible-playbook tasks/update-packages.yaml
+
+          if [ "${{ matrix.os }}" != "ubuntu/22.04" ] && [ "${{ matrix.os }}" != "ubuntu/24.04" ]; then
+            # Linstor is only available on jammy and noble.
+            sed -i -e '/linstor:/,+4d' hosts.yaml
+          fi
 
           if [ "${{ matrix.os }}" = "ubuntu/20.04" ]; then
             # Ubuntu 20.04's OVN is too old.
