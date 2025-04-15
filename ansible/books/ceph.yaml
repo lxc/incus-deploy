@@ -198,6 +198,10 @@
       squid: 19
   any_errors_fatal: true
   tasks:
+    - name: Check if part of Ceph
+      meta: end_host
+      when: "not task_fsid"
+
     - name: Check if bootstrap server
       meta: end_host
       when: "lookup('template', '../files/ceph/ceph.monitors.names.tpl') | from_yaml | sort | first != inventory_hostname"
@@ -227,7 +231,6 @@
         cmd: ceph-authtool --create-keyring /root/generate/task_mon_keyring --gen-key -n mon. --cap mon 'allow *'
         creates: /root/generate/task_mon_keyring
       throttle: 1
-      when: 'task_fsid'
 
     - name: Generate mon keyring (fetch back to control node)
       ansible.builtin.fetch:
@@ -254,7 +257,6 @@
         creates: /root/generate/task_client_admin_keyring
       throttle: 1
       notify: Add key to client.admin keyring
-      when: 'task_fsid'
 
     - name: Generate client.admin keyring (fetch back to control node)
       ansible.builtin.fetch:
@@ -281,7 +283,6 @@
         creates: /root/generate/task_bootstrap_osd_keyring
       throttle: 1
       notify: Add key to bootstrap-osd keyring
-      when: 'task_fsid'
 
     - name: Generate bootstrap-osd keyring (fetch back to control node)
       ansible.builtin.fetch:
@@ -308,7 +309,6 @@
         creates: /root/generate/task_mon_map
       throttle: 1
       notify: Add nodes to mon map
-      when: 'task_fsid'
 
     - name: Generate mon map (fetch back to control node)
       ansible.builtin.fetch:
