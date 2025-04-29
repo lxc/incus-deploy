@@ -60,9 +60,9 @@ connection to the previously deployed systems which will cause the
 deployment to get stuck.
 
 ```
-rm ansible/data/ceph/*
-rm ansible/data/lvmcluster/*
-rm ansible/data/ovn/*
+rm -r ansible/data/ceph/*
+rm -r ansible/data/lvmcluster/*
+rm -r ansible/data/ovn/*
 ```
 
 ### Test a VM and Container on the new Incus cluster
