@@ -41,7 +41,7 @@ jobs:
 
       - name: Setup Incus
         run: |
-          curl https://pkgs.zabbly.com/get/incus-daily | sudo sh
+          curl https://pkgs.zabbly.com/get/incus-stable | sudo sh
           sudo chmod 666 /var/lib/incus/unix.socket
 
           incus network create incusbr0
