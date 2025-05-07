@@ -1,0 +1,21 @@
+#SPDX-License-Identifier: Apache-2.0
+---
+namespace: lxc
+name: incus
+version: 0.0.1
+readme: README.md
+authors:
+- Stéphane Graber 
+description: a collection of roles and modules to deploy incus
+license:
+- Apache-2.0
+tags: ["lxc", "incus"]
+dependencies:
+  community.general: ">=10.4.0"
+repository: https://github.com/lxc/incus-deploy
+documentation: https://github.com/lxc/incus-deploy
+homepage: https://github.com/lxc/incus-deploy
+issues: https://github.com/lxc/incus-deploy/issues
+build_ignore:
+  - ansible/**
+  - terraform/**
