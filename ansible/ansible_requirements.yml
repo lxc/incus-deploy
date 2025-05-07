@@ -5,5 +5,6 @@
 collections:
   - name: community.crypto
   - name: community.general
+    version: ">10.4.0"
 
 roles:

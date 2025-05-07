@@ -91,6 +91,8 @@ jobs:
             sed -i "s/driver: zfs/driver: btrfs/g" hosts.yaml
           fi
 
+          ansible-galaxy install -r ansible_requirements.yml
+
           ansible-playbook deploy.yaml
 
       - name: Post deployment validation
