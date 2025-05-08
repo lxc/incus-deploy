@@ -3,6 +3,8 @@
 # ansible-galaxy install -r ansible_requirements.yml
 
 collections:
+  - name: ..
+    type: dir
   - name: community.crypto
   - name: community.general
     version: ">10.4.0"
