@@ -1,5 +1,7 @@
 ---
 - name: OVN - Generate PKI certificates (central)
+  collections:
+    - lxc.incus
   hosts: all
   order: shuffle
   gather_facts: no
