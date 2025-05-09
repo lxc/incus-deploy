@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Create CA signing request
+  delegate_to: 127.0.0.1
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ ovn_pki_path }}/ca.key"
+    common_name: "OVN CA for {{ ovn_pki_name }}"
+    use_common_name_for_san: false
+    basic_constraints:
+      - 'CA:TRUE'
+    basic_constraints_critical: true
+    key_usage:
+      - keyCertSign
+    key_usage_critical: true
+  register: ca_csr
+  notify: Issue CA certificate
+  throttle: 1
+
+- name: Issue CA certificate
+  delegate_to: 127.0.0.1
+  community.crypto.x509_certificate:
+    path: "{{ ovn_pki_path }}/ca.crt"
+    csr_content: "{{ ca_csr.csr }}"
+    privatekey_path: "{{ ovn_pki_path }}/ca.key"
+    provider: selfsigned
+  throttle: 1
+
+- name: Create server signing request
+  delegate_to: 127.0.0.1
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ ovn_pki_path }}/{{ inventory_hostname }}.key"
+    common_name: "OVN certificate for {{ inventory_hostname }}"
+    use_common_name_for_san: false
+  register: cert_csr
+  notify: Issue server certificate
+
+- name: Issue server certificate
+  delegate_to: 127.0.0.1
+  community.crypto.x509_certificate:
+    path: "{{ ovn_pki_path }}/{{ inventory_hostname }}.crt"
+    csr_content: "{{ cert_csr.csr }}"
+    ownca_path: "{{ ovn_pki_path }}/ca.crt"
+    ownca_privatekey_path: "{{ ovn_pki_path }}/ca.key"
+    ownca_not_after: "+3650d"
+    ownca_not_before: "-1d"
+    provider: ownca
+  throttle: 1
+
+- name: Create client signing request
+  delegate_to: 127.0.0.1
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ ovn_pki_path }}/{{ item.item }}.key"
+    common_name: "OVN client certificate for {{ item.item }}"
+    use_common_name_for_san: false
+  register: client_csr
+  notify: Issue client certificate
+  loop: "{{ client_key.results }}"
+
+- name: Issue client certificate
+  delegate_to: 127.0.0.1
+  community.crypto.x509_certificate:
+    path: "{{ ovn_pki_path }}/{{ item.item.item }}.crt"
+    csr_content: "{{ item.csr }}"
+    ownca_path: "{{ ovn_pki_path }}/ca.crt"
+    ownca_privatekey_path: "{{ ovn_pki_path }}/ca.key"
+    ownca_not_after: "+3650d"
+    ownca_not_before: "-1d"
+    provider: ownca
+  loop: "{{ client_csr.results }}"
+  throttle: 1

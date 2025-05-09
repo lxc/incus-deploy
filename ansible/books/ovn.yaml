@@ -7,7 +7,7 @@
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - role: ovn-pki
+    - role: ovn_pki
 
 - name: OVN - Add package repository
   hosts: all

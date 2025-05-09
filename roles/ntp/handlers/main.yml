@@ -1,0 +1,12 @@
+- name: Wait 5s for NTP sync
+  ansible.builtin.wait_for:
+    timeout: 5
+  delegate_to: localhost
+  notify: Verify NTP successfully synced
+  when: enable.changed
+
+- name: Verify NTP successfully synced
+  ansible.builtin.command: timedatectl timesync-status
+  register: ntp_status_output
+  failed_when: '"Packet count: 0" in ntp_status_output.stdout'
+  changed_when: false

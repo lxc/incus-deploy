@@ -1,4 +1,4 @@
-#SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 galaxy_info:
   author: Stéphane Graber
   description: role to install and configure NTP on a systemd-based host

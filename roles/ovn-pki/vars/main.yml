@@ -1,6 +1,0 @@
-#SPDX-License-Identifier: Apache-2.0
----
-task_clients: "{{ ovn_clients | default([]) }}"
-task_name: "{{ ovn_name | default('') }}"
-task_pki_path: "../data/ovn/{{ task_name }}/"
-task_roles: "{{ ovn_roles | default([]) }}"
