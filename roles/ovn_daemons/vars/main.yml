@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+ovn_daemons_ip_address: >
+  {{ ovn_ip_address | default(ansible_default_ipv6['address'] |
+  default(ansible_default_ipv4['address'])) }}
+ovn_daemons_az_name: "{{ ovn_az_name | default('') }}"
+ovn_daemons_name: "{{ ovn_name | default('') }}"
+ovn_daemons_roles: "{{ ovn_roles | default([]) }}"
+ovn_daemons_central_northbound: >
+  {{ lookup('template', 'ovn-central.servers.j2') | from_yaml |
+  map('regex_replace', '^(.*)$', 'ssl:[\1]:6641') | join(',') }}
+ovn_daemons_central_southbound: >
+  {{ lookup('template', 'ovn-central.servers.j2') | from_yaml |
+  map('regex_replace', '^(.*)$', 'ssl:[\1]:6642') | join(',') }}
+ovn_daemons_ic_northbound: >
+  {{ lookup('template', 'ovn-ic.servers.j2') | from_yaml |
+  map('regex_replace', '^(.*)$', 'ssl:[\1]:6645') | join(',') }}
+ovn_daemons_ic_southbound: >
+  {{ lookup('template', 'ovn-ic.servers.j2') | from_yaml |
+  map('regex_replace', '^(.*)$', 'ssl:[\1]:6646') | join(',') }}
+ovn_daemons_pki_path: "../data/ovn/{{ ovn_daemons_name }}/"

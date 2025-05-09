@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Update apt
+  ansible.builtin.apt:
+    force_apt_get: true
+    update_cache: true
+    cache_valid_time: 0
