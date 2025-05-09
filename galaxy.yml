@@ -12,6 +12,7 @@ license:
 tags: ["lxc", "incus"]
 dependencies:
   community.general: ">=10.4.0"
+  community.crypto: ">=2.20.0"
 repository: https://github.com/lxc/incus-deploy
 documentation: https://github.com/lxc/incus-deploy
 homepage: https://github.com/lxc/incus-deploy

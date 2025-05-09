@@ -1,7 +1,7 @@
-#SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 ---
 - name: Install EPEL repo (rpm)
-  yum:
+  ansible.builtin.dnf:
     name: epel-release
     state: present
   when: 'ansible_distribution == "CentOS"'
@@ -13,21 +13,8 @@
     state: present
 
 - name: Enable systemd-timesyncd
-  systemd:
-    enabled: yes
+  ansible.builtin.systemd:
+    enabled: true
     name: systemd-timesyncd
     state: started
-  register: enable
-
-- name: Wait 5s for NTP sync
-  ansible.builtin.wait_for:
-    timeout: 5
-  delegate_to: localhost
-  when: enable.changed
-
-- name: Verify NTP successfully synced
-  shell:
-    cmd: timedatectl timesync-status
-  register: ntp_status_output
-  failed_when: '"Packet count: 0" in ntp_status_output.stdout'
-  changed_when: false
+  notify: Wait 5s for NTP sync
