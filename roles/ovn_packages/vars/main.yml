@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+ovn_packages_release: "{{ ovn_release | default('distro') }}"
+ovn_packages_roles: "{{ ovn_roles | default([]) }}"
+ovn_packages_ip_address: "{{ ovn_ip_address | default(ansible_default_ipv6['address'] | default(ansible_default_ipv4['address'])) }}"
+ovn_packages_name: "{{ ovn_name | default('') }}"
+
+ovn_packages_central_southbound: >
+  {{ lookup('template', 'ovn-central.servers.j2') |
+  from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\1]:6642') | join(',') }}
