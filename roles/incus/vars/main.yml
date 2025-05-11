@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+incus_ip_address_or_default: "{{ incus_ip_address | default(ansible_default_ipv6['address'] | default(ansible_default_ipv4['address'])) }}"
+incus_ovn_northbound: "{{ lookup('template', 'ovn-central.servers.j2') | from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\\1]:6641') | join(',') }}"
+incus_servers: "{{ lookup('template', 'incus.servers.j2') | from_yaml | sort }}"

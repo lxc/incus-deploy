@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Add COPR repository
+  community.general.copr:
+    chroot: "epel-9-x86_64"
+    name: "neil/incus"
+    state: enabled
+  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_distribution == "CentOS"'

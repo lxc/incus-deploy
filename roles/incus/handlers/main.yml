@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Add the Debian repository registration handlers
+  ansible.builtin.import_tasks: repo_deb.yml
+
+- name: Add the installation registration handlers
+  ansible.builtin.import_tasks: installation.yml
