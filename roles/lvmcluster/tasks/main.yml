@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Configure the cluster
+  ansible.builtin.import_tasks: configuration.yml
+
+- name: Add the packages
+  ansible.builtin.import_tasks: packages.yml
+
+- name: Add storage pool and volume groups
+  ansible.builtin.import_tasks: volumegroups.yml

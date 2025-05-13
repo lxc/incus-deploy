@@ -1,0 +1,38 @@
+- name: Install the LVM packages
+  ansible.builtin.package:
+    name:
+      - lvm2
+      - lvm2-lockd
+      - sanlock
+    state: present
+  when: 'lvmcluster_name'
+
+- name: Configure for LVM cluster
+  ansible.builtin.template:
+    src: lvmlocal.conf.j2
+    dest: /etc/lvm/lvmlocal.conf
+    mode: "0644"
+  when: 'lvmcluster_name'
+  vars:
+    lvmcluster_host_ids: "{{ lookup('file', '../data/lvmcluster/' + lvmcluster_name + '/host_id.yaml') | from_yaml }}"
+
+- name: Enable the lvmlockd unit
+  ansible.builtin.systemd:
+    enabled: true
+    name: lvmlockd
+    state: started
+  when: 'lvmcluster_name'
+
+- name: Enable the sanlock unit
+  ansible.builtin.systemd:
+    enabled: true
+    name: sanlock
+    state: started
+  when: 'lvmcluster_name'
+
+- name: Enable the wdmd unit
+  ansible.builtin.systemd:
+    enabled: true
+    name: wdmd
+    state: started
+  when: 'lvmcluster_name'
