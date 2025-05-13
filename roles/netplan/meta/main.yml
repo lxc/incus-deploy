@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0
+galaxy_info:
+  author: Stéphane Graber
+  description: role to apply a netplan configuration
+  company: Zabbly
+  license: Apache-2.0
+  min_ansible_version: "2.14"
+  galaxy_tags:
+    - incus
+    - netplan
+dependencies: []
