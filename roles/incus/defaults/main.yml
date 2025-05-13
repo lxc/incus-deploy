@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+incus_roles: []
+incus_init: {}
+incus_name: ""
