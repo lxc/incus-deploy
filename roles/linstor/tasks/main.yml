@@ -14,3 +14,6 @@
 
 - name: Create Linstor Satellite
   ansible.builtin.import_tasks: satellite.yml
+
+- name: Create storage pool and add the disks
+  ansible.builtin.import_tasks: storage.yml

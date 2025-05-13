@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Gather all satellite hosts
+  ansible.builtin.set_fact:
+    satellite_hosts: >-
+      {{ groups['all']
+          | map('extract', hostvars)
+          | selectattr('linstor_roles', 'defined')
+          | selectattr('linstor_roles', 'contains', 'satellite')
+          | map(attribute='inventory_hostname')
+          | list }}
+
+- name: List storage pools
+  ansible.builtin.command: linstor --machine-readable storage-pool list
+  register: storage_pool_output
+  changed_when: false
+  when: '"controller" in linstor_roles'
+
+- name: Parse storage pools
+  ansible.builtin.set_fact:
+    satellites_without_storage_pools: >-
+      {{
+        satellite_hosts | difference(
+          storage_pool_output.stdout | from_json | json_query('[0][?linstor_pool_driver!=`DISKLESS`].node_name') | unique
+        )
+      }}
+  changed_when: false
+  when: '"controller" in linstor_roles'
+
+- name: Create storage pool
+  ansible.builtin.command: >-
+    linstor physical-storage create-device-pool --storage-pool {{ linstor_pool_name }}
+    --pool-name linstor-{{ linstor_pool_name }} {{ linstor_pool_driver }} {{ item }}
+    {{ linstor_mapped_disks | join(' ') }}
+  register: create_storage_pool_output
+  loop: "{{ groups['all'] }}"
+  when: '("controller" in linstor_roles) and ("satellite" in hostvars[item]["linstor_roles"]) and (item in satellites_without_storage_pools)'
+  changed_when: "create_storage_pool_output.rc == 0"
