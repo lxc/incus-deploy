@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Check if distribution is supported
+  ansible.builtin.meta: end_play
+  when: 'ansible_distribution != "Ubuntu" or ansible_distribution_release == "focal"'
+
+- name: Create apt keyring path
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/
+    mode: "0755"
+    state: directory
+  when: 'linstor_roles|length > 0'
+
+- name: Add PPA GPG key
+  ansible.builtin.copy:
+    src: linstor-ppa.asc
+    dest: /etc/apt/keyrings/ansible-linstor-ppa.asc
+    mode: "0644"
+  notify: Update apt
+  when: 'linstor_roles|length > 0'
+
+- name: Get DPKG architecture
+  ansible.builtin.command: dpkg --print-architecture
+  register: dpkg_architecture
+  changed_when: false
+  check_mode: false
+  when: 'linstor_roles|length > 0'
+
+- name: Add Linstor PPA package source
+  ansible.builtin.template:
+    src: linstor-ppa.sources.j2
+    dest: /etc/apt/sources.list.d/ansible-linstor-ppa.sources
+    mode: "0644"
+  notify: Update apt
+  when: 'linstor_roles|length > 0'

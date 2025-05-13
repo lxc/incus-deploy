@@ -1,86 +1,15 @@
 ---
 - name: Linstor - Add package repository
   hosts: all
+  collections:
+    - lxc.incus
   order: shuffle
   gather_facts: yes
   gather_subset:
     - "distribution_release"
-  vars:
-    task_roles: "{{ linstor_roles | default([]) }}"
   any_errors_fatal: true
-  tasks:
-    - name: Check if distribution is supported
-      meta: end_play
-      when: 'ansible_distribution != "Ubuntu" or ansible_distribution_release == "focal"'
-
-    - name: Create apt keyring path
-      file:
-        path: /etc/apt/keyrings/
-        mode: 0755
-        state: directory
-      when: 'task_roles|length > 0'
-
-    - name: Add PPA GPG key
-      copy:
-        src: ../files/linstor/linstor-ppa.asc
-        dest: /etc/apt/keyrings/ansible-linstor-ppa.asc
-      notify: Update apt
-      when: 'task_roles|length > 0'
-
-    - name: Get DPKG architecture
-      shell: dpkg --print-architecture
-      register: dpkg_architecture
-      changed_when: false
-      check_mode: no
-      when: 'task_roles|length > 0'
-
-    - name: Add Linstor PPA package source
-      template:
-        src: ../files/linstor/linstor-ppa.sources.tpl
-        dest: /etc/apt/sources.list.d/ansible-linstor-ppa.sources
-      notify: Update apt
-      when: 'task_roles|length > 0'
-
-  handlers:
-    - name: Update apt
-      apt:
-        force_apt_get: yes
-        update_cache: yes
-        cache_valid_time: 0
-
-- name: Linstor - Install packages
-  hosts: all
-  order: shuffle
-  gather_facts: yes
-  gather_subset:
-    - "distribution_release"
-  vars:
-    task_roles: "{{ linstor_roles | default([]) }}"
-  any_errors_fatal: true
-  tasks:
-    - name: Check if distribution is supported
-      meta: end_play
-      when: 'ansible_distribution != "Ubuntu" or ansible_distribution_release == "focal"'
-
-    - name: Install linstor-satellite
-      apt:
-        name:
-          - drbd-dkms
-          - drbd-utils
-          - linstor-satellite
-          - lvm2
-          - python3-setuptools
-          - zfsutils-linux
-        state: present
-      when: '"satellite" in task_roles'
-
-    - name: Install linstor-controller
-      apt:
-        name:
-          - linstor-controller
-          - linstor-client
-        state: present
-      when: '"controller" in task_roles'
+  roles:
+    - role: linstor
 
 - name: Linstor - Enable services
   hosts: all
