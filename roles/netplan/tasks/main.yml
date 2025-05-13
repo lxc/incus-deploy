@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Check if distribution is supported
+  ansible.builtin.meta: end_play
+  when: 'ansible_distribution not in ("Ubuntu", "Debian")'
+
+- name: Check if a Netplan configuration exists
+  delegate_to: localhost
+  ansible.builtin.stat:
+    path: ../data/netplan/{{ inventory_hostname }}.yaml
+  register: main_file
+  notify:
+    - Ensure netplan is installed
+    - Remove existing configuration
+    - Transfer netplan configuration
+  changed_when: main_file.stat.exists
