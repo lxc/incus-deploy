@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Enable linstor-satellite
+  ansible.builtin.systemd:
+    service: linstor-satellite
+    state: started
+    enabled: true
+  when: '"satellite" in linstor_roles'
+
+- name: Enable linstor-controller
+  ansible.builtin.systemd:
+    service: linstor-controller
+    state: started
+    enabled: true
+  when: '"controller" in linstor_roles'

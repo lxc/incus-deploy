@@ -8,3 +8,6 @@
 
 - name: Install the package for Linstor
   ansible.builtin.import_tasks: installation.yml
+
+- name: Enable Linstor Services
+  ansible.builtin.import_tasks: services.yml

@@ -11,34 +11,6 @@
   roles:
     - role: linstor
 
-- name: Linstor - Enable services
-  hosts: all
-  order: shuffle
-  gather_facts: yes
-  gather_subset:
-    - "distribution_release"
-  vars:
-    task_roles: "{{ linstor_roles | default([]) }}"
-  any_errors_fatal: true
-  tasks:
-    - name: Check if distribution is supported
-      meta: end_play
-      when: 'ansible_distribution != "Ubuntu" or ansible_distribution_release == "focal"'
-
-    - name: Enable linstor-satellite
-      systemd:
-        service: linstor-satellite
-        state: started
-        enabled: true
-      when: '"satellite" in task_roles'
-
-    - name: Enable linstor-controller
-      systemd:
-        service: linstor-controller
-        state: started
-        enabled: true
-      when: '"controller" in task_roles'
-
 - name: Linstor - Add satellite nodes
   hosts: all
   order: shuffle
