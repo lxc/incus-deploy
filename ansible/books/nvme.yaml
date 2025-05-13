@@ -1,33 +1,11 @@
 ---
 - name: NVME - Install packages and host config
   hosts: all
+  collections:
+    - lxc.incus
   order: shuffle
   gather_facts: yes
   gather_subset:
     - "distribution_release"
-  vars:
-    task_targets: "{{ nvme_targets | default([]) }}"
-  any_errors_fatal: true
-  tasks:
-    - name: Install the NVME packages
-      ansible.builtin.package:
-        name:
-          - nvme-cli
-        state: present
-      when: 'task_targets | length > 0'
-
-    - name: Configure NVME discovery
-      template:
-        src: ../files/nvme/discovery.conf.tpl
-        dest: /etc/nvme/discovery.conf
-      when: 'task_targets | length > 0'
-      notify:
-       - Discover NVME targets
-       - Connect NVME targets
-
-  handlers:
-    - name: Discover NVME targets
-      shell: nvme discover
-
-    - name: Connect NVME targets
-      shell: nvme connect-all
+  roles:
+    - role: nvme
