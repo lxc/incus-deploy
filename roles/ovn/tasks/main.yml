@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Add keys and dertificates generation tasks
+  ansible.builtin.import_tasks: certificates.yml
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

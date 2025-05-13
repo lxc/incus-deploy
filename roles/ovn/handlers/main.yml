@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Add keys and dertificates generation handlers
+  ansible.builtin.import_tasks: certificates.yml
