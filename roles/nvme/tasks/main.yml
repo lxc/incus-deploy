@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Install the NVME packages
+  ansible.builtin.package:
+    name:
+      - nvme-cli
+    state: present
+  when: 'nvme_targets | length > 0'
+
+- name: Configure NVME discovery
+  ansible.builtin.template:
+    src: discovery.conf.j2
+    dest: /etc/nvme/discovery.conf
+    mode: "0644"
+  when: 'nvme_targets | length > 0'
+  notify:
+    - Discover NVME targets
+    - Connect NVME targets

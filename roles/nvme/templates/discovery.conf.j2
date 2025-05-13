@@ -4,6 +4,6 @@
 #
 # Example:
 # --transport=<trtype> --traddr=<traddr> --trsvcid=<trsvcid> --host-traddr=<host-traddr> --host-iface=<host-iface>
-{% for target in task_targets %}
+{% for target in nvme_targets %}
 --transport=tcp --traddr={{ target }}
 {% endfor %}

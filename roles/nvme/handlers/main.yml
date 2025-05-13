@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Discover NVME targets
+  ansible.builtin.command: nvme discover
+  changed_when: true
+
+- name: Connect NVME targets
+  ansible.builtin.command: nvme connect-all
+  changed_when: true
