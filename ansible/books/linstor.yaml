@@ -6,44 +6,12 @@
   order: shuffle
   gather_facts: yes
   gather_subset:
-    - "distribution_release"
+  - "default_ipv4"
+  - "default_ipv6"
+  - "distribution_release"
   any_errors_fatal: true
   roles:
     - role: linstor
-
-- name: Linstor - Add satellite nodes
-  hosts: all
-  order: shuffle
-  gather_facts: yes
-  gather_subset:
-    - "default_ipv4"
-    - "default_ipv6"
-    - "distribution_release"
-  vars:
-    task_roles: "{{ linstor_roles | default([]) }}"
-  any_errors_fatal: true
-  tasks:
-    - name: Check if distribution is supported
-      meta: end_play
-      when: 'ansible_distribution != "Ubuntu" or ansible_distribution_release == "focal"'
-
-    - name: List satellite nodes
-      shell: linstor --machine-readable node list
-      register: satellite_nodes_output
-      changed_when: false
-      when: '"controller" in task_roles'
-
-    - name: Parse satellite node names
-      set_fact:
-        existing_satellite_nodes: "{{ satellite_nodes_output.stdout | from_json | json_query('[].name') }}"
-      when: '"controller" in task_roles'
-
-    - name: Add satellite nodes
-      shell: linstor node create {{ item }} {{ hostvars[item].ansible_facts.default_ipv6.address | default(hostvars[item].ansible_facts.default_ipv4.address) }} --node-type satellite
-      register: create_node_output
-      loop: "{{ groups['all'] }}"
-      when: '("controller" in task_roles) and ("satellite" in hostvars[item]["linstor_roles"]) and (item not in existing_satellite_nodes)'
-      changed_when: "create_node_output.rc == 0"
 
 - name: Linstor - Create storage pools
   hosts: all

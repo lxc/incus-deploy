@@ -11,3 +11,6 @@
 
 - name: Enable Linstor Services
   ansible.builtin.import_tasks: services.yml
+
+- name: Create Linstor Satellite
+  ansible.builtin.import_tasks: satellite.yml
