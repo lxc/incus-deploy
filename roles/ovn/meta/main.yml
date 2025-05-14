@@ -2,7 +2,7 @@
 ---
 galaxy_info:
   author: Stéphane Graber
-  description: role to manage certificates and packages with OVN
+  description: role to manage OVN certificates, packages and configuration
   company: Zabbly
   license: Apache-2.0
   min_ansible_version: "2.14"

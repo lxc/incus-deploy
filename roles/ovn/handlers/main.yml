@@ -8,3 +8,6 @@
 
 - name: Add the package installation handlers
   ansible.builtin.import_tasks: packages.yml
+
+- name: Add the daemons configuration handlers
+  ansible.builtin.import_tasks: "configuration.yml"

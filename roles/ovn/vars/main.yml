@@ -4,3 +4,12 @@ ovn_path: "../data/ovn/{{ ovn_name }}/"
 ovn_central_southbound: >-
   {{ lookup('template', 'ovn-central.servers.j2') |
   from_yaml | map('regex_replace', '^(.*)$', 'ssl:[\1]:6642') | join(',') }}
+ovn_central_northbound: >-
+  {{ lookup('template', 'ovn-central.servers.j2') | from_yaml |
+  map('regex_replace', '^(.*)$', 'ssl:[\1]:6641') | join(',') }}
+ovn_ic_southbound: >-
+  {{ lookup('template', 'ovn-ic.servers.j2') | from_yaml |
+  map('regex_replace', '^(.*)$', 'ssl:[\1]:6646') | join(',') }}
+ovn_ic_northbound: >-
+  {{ lookup('template', 'ovn-ic.servers.j2') | from_yaml |
+  map('regex_replace', '^(.*)$', 'ssl:[\1]:6645') | join(',') }}

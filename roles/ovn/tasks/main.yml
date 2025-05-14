@@ -17,3 +17,6 @@
 
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
+
+- name: Configure daemons
+  ansible.builtin.import_tasks: "configuration.yml"
