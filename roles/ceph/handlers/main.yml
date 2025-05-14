@@ -8,3 +8,6 @@
 
 - name: Cluster keys deployment handlers
   ansible.builtin.import_tasks: deploy_keys.yml
+
+- name: Ceph mon configuration handlers
+  ansible.builtin.import_tasks: mon.yml

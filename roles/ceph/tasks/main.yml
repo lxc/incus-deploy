@@ -30,3 +30,24 @@
 
 - name: Force handler execution
   ansible.builtin.meta: flush_handlers
+
+- name: Configure ceph mon
+  ansible.builtin.import_tasks: mon.yml
+
+- name: Force handler execution
+  ansible.builtin.meta: flush_handlers
+
+- name: Configure ceph osd
+  ansible.builtin.import_tasks: osd.yml
+
+- name: Configure ceph mgr
+  ansible.builtin.import_tasks: mgr.yml
+
+- name: Configure ceph mds
+  ansible.builtin.import_tasks: mds.yml
+
+- name: Configure ceph rgw
+  ansible.builtin.import_tasks: rgw.yml
+
+- name: Configure ceph rbd-mirror
+  ansible.builtin.import_tasks: rdb_mirror.yml

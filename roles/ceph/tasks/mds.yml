@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Create /var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}
+  ansible.builtin.file:
+    path: /var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}
+    owner: ceph
+    group: ceph
+    mode: "0770"
+    state: directory
+  register: deploy_mds
+  when: '"mds" in ceph_roles'
+
+- name: Create mds keyring
+  delegate_to: "{{ lookup('template', 'ceph.monitors.names.j2') | from_yaml | first }}"
+  ansible.builtin.command:
+    cmd: ceph auth get-or-create mds.{{ inventory_hostname_short }} mon 'profile mds' mgr 'profile mds' mds 'allow *' osd 'allow *'
+  register: mds_keyring
+  when: '"mds" in ceph_roles and deploy_mds.changed'
+  changed_when: true
+
+- name: Transfer mds keyring
+  ansible.builtin.copy:
+    content: "{{ mds_keyring.stdout }}\n"
+    dest: "/var/lib/ceph/mds/ceph-{{ inventory_hostname_short }}/keyring"
+    owner: ceph
+    group: ceph
+    mode: "0660"
+  when: '"mds" in ceph_roles and deploy_mds.changed'
+
+- name: Enable ceph mds
+  ansible.builtin.systemd:
+    enabled: true
+    name: ceph-mds@{{ inventory_hostname_short }}
+    state: started
+  when: '"mds" in ceph_roles'

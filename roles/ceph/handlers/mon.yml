@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Enable msgr2
+  ansible.builtin.command: ceph mon enable-msgr2
+  changed_when: true
+
+- name: Disable insecure_global_id_reclaim
+  ansible.builtin.command: ceph config set global auth_allow_insecure_global_id_reclaim false
+  changed_when: true

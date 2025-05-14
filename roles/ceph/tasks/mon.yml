@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Bootstrap Ceph mon
+  ansible.builtin.command:
+    cmd: >-
+      sudo -u ceph ceph-mon --mkfs -i {{ inventory_hostname_short }}
+      --monmap /var/lib/ceph/bootstrap-mon/ceph.monmap
+      --keyring /var/lib/ceph/bootstrap-mon/ceph.keyring
+    creates: /var/lib/ceph/mon/ceph-{{ inventory_hostname_short }}/keyring
+  notify:
+    - Enable msgr2
+    - Disable insecure_global_id_reclaim
+  when: '"mon" in ceph_roles'
+  changed_when: true
+
+- name: Enable and start Ceph mon
+  ansible.builtin.systemd:
+    enabled: true
+    name: ceph-mon@{{ inventory_hostname_short }}
+    state: started
+  when: '"mon" in ceph_roles'

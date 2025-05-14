@@ -18,3 +18,4 @@ ceph_network_private: ''
 ceph_rbd_cache: "128Mi"
 ceph_rbd_cache_max: "96Mi"
 ceph_rbd_cache_target: "64Mi"
+ceph_disks: []
