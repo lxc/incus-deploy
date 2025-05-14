@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Restart Ceph
+  ansible.builtin.systemd:
+    name: ceph.target
+    state: restarted

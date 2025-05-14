@@ -13,3 +13,20 @@
 
 - name: Install packages
   ansible.builtin.import_tasks: packages.yml
+
+- name: Check if part of Ceph
+  ansible.builtin.meta: end_host
+  when: "not ceph_fsid"
+
+- name: Create cluster keys
+  ansible.builtin.import_tasks: create_keys.yml
+  when: "lookup('template', 'ceph.monitors.names.j2') | from_yaml | sort | first == inventory_hostname"
+
+- name: Force handler execution
+  ansible.builtin.meta: flush_handlers
+
+- name: Deploy cluster keys
+  ansible.builtin.import_tasks: deploy_keys.yml
+
+- name: Force handler execution
+  ansible.builtin.meta: flush_handlers

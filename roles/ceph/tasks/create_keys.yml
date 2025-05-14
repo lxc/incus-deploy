@@ -1,0 +1,124 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Create /root/generate dir
+  ansible.builtin.file:
+    path: /root/generate
+    owner: root
+    group: root
+    mode: "0700"
+    state: directory
+
+- name: Generate mon keyring (control node stat)
+  delegate_to: 127.0.0.1
+  ansible.builtin.stat:
+    path: '{{ ceph_mon_keyring }}'
+  register: ceph_mon_keyring_stat
+
+- name: Generate mon keyring (copy to remote)
+  ansible.builtin.copy:
+    src: '{{ ceph_mon_keyring }}'
+    dest: /root/generate/ceph_mon_keyring
+    mode: "0644"
+  when: ceph_mon_keyring_stat.stat.exists
+
+- name: Generate mon keyring
+  ansible.builtin.command:
+    cmd: ceph-authtool --create-keyring /root/generate/ceph_mon_keyring --gen-key -n mon. --cap mon 'allow *'
+    creates: /root/generate/ceph_mon_keyring
+  throttle: 1
+
+- name: Generate mon keyring (fetch back to control node)
+  ansible.builtin.fetch:
+    src: /root/generate/ceph_mon_keyring
+    dest: '{{ ceph_mon_keyring }}'
+    flat: true
+  when: not ceph_mon_keyring_stat.stat.exists
+
+- name: Generate client.admin keyring (control node stat)
+  delegate_to: 127.0.0.1
+  ansible.builtin.stat:
+    path: '{{ ceph_client_admin_keyring }}'
+  register: ceph_client_admin_keyring_stat
+
+- name: Generate client.admin keyring (copy to remote)
+  ansible.builtin.copy:
+    src: '{{ ceph_client_admin_keyring }}'
+    dest: /root/generate/ceph_client_admin_keyring
+    mode: "0644"
+  when: ceph_client_admin_keyring_stat.stat.exists
+
+- name: Generate client.admin keyring
+  ansible.builtin.command:
+    cmd: >-
+      ceph-authtool --create-keyring /root/generate/ceph_client_admin_keyring
+      --gen-key -n client.admin --cap mon 'allow *' --cap osd 'allow *'
+      --cap mds 'allow *' --cap mgr 'allow *'
+    creates: /root/generate/ceph_client_admin_keyring
+  throttle: 1
+  notify: Add key to client.admin keyring
+
+- name: Generate client.admin keyring (fetch back to control node)
+  ansible.builtin.fetch:
+    src: /root/generate/ceph_client_admin_keyring
+    dest: '{{ ceph_client_admin_keyring }}'
+    flat: true
+  when: not ceph_client_admin_keyring_stat.stat.exists
+
+- name: Generate bootstrap-osd keyring (control node stat)
+  delegate_to: 127.0.0.1
+  ansible.builtin.stat:
+    path: '{{ ceph_bootstrap_osd_keyring }}'
+  register: ceph_bootstrap_osd_keyring_stat
+
+- name: Generate bootstrap-osd keyring (copy to remote)
+  ansible.builtin.copy:
+    src: '{{ ceph_bootstrap_osd_keyring }}'
+    dest: /root/generate/ceph_bootstrap_osd_keyring
+    mode: "0644"
+  when: ceph_bootstrap_osd_keyring_stat.stat.exists
+
+- name: Generate bootstrap-osd keyring
+  ansible.builtin.command:
+    cmd: >-
+      ceph-authtool --create-keyring /root/generate/ceph_bootstrap_osd_keyring
+      --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd'
+      --cap mgr 'allow r'
+    creates: /root/generate/ceph_bootstrap_osd_keyring
+  throttle: 1
+  notify: Add key to bootstrap-osd keyring
+
+- name: Generate bootstrap-osd keyring (fetch back to control node)
+  ansible.builtin.fetch:
+    src: /root/generate/ceph_bootstrap_osd_keyring
+    dest: '{{ ceph_bootstrap_osd_keyring }}'
+    flat: true
+  when: not ceph_bootstrap_osd_keyring_stat.stat.exists
+
+- name: Generate mon map (control node stat)
+  delegate_to: 127.0.0.1
+  ansible.builtin.stat:
+    path: '{{ ceph_mon_map }}'
+  register: ceph_mon_map_stat
+
+- name: Generate mon map (copy to remote)
+  ansible.builtin.copy:
+    src: '{{ ceph_mon_map }}'
+    dest: /root/generate/ceph_mon_map
+    mode: "0644"
+  when: ceph_mon_map_stat.stat.exists
+
+- name: Generate mon map
+  ansible.builtin.command:
+    cmd: >-
+      monmaptool --create{% if ceph_release_majors[ceph_release] | default(None) %} --set-min-mon-release={{ ceph_release_majors[ceph_release] }}{% endif %}
+      --fsid {{ ceph_fsid }} /root/generate/ceph_mon_map
+    creates: /root/generate/ceph_mon_map
+  throttle: 1
+  notify: Add nodes to mon map
+
+- name: Generate mon map (fetch back to control node)
+  ansible.builtin.fetch:
+    src: /root/generate/ceph_mon_map
+    dest: '{{ ceph_mon_map }}'
+    flat: true
+  when: not ceph_mon_map_stat.stat.exists

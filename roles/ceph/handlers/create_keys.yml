@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Add key to client.admin keyring (remote)
+  ansible.builtin.command: ceph-authtool /root/generate/ceph_mon_keyring --import-keyring /root/generate/ceph_client_admin_keyring
+  listen: Add key to client.admin keyring
+  changed_when: true
+
+- name: Add key to client.admin keyring (fetch)
+  ansible.builtin.fetch:
+    src: /root/generate/ceph_mon_keyring
+    dest: '{{ ceph_mon_keyring }}'
+    flat: true
+  listen: Add key to client.admin keyring
+
+- name: Add key to bootstrap-osd keyring (remote)
+  ansible.builtin.command: ceph-authtool /root/generate/ceph_mon_keyring --import-keyring /root/generate/ceph_bootstrap_osd_keyring
+  listen: Add key to bootstrap-osd keyring
+  changed_when: true
+
+- name: Add key to bootstrap-osd keyring (fetch)
+  ansible.builtin.fetch:
+    src: /root/generate/ceph_mon_keyring
+    dest: '{{ ceph_mon_keyring }}'
+    flat: true
+  listen: Add key to bootstrap-osd keyring
+
+- name: Add nodes to mon map (remote)
+  ansible.builtin.command: monmaptool --add {{ item.name }} {{ item.ip }} /root/generate/ceph_mon_map
+  loop: "{{ lookup('template', 'ceph.monitors.j2') | from_yaml | default([]) }}"
+  listen: Add nodes to mon map
+  changed_when: true
+
+- name: Add nodes to mon map (fetch)
+  ansible.builtin.fetch:
+    src: /root/generate/ceph_mon_map
+    dest: '{{ ceph_mon_map }}'
+    flat: true
+  listen: Add nodes to mon map

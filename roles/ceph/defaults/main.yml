@@ -2,3 +2,19 @@
 ---
 ceph_release: 'squid'
 ceph_roles: []
+ceph_fsid: ''
+ceph_release_majors:
+  luminous: 12
+  mimic: 13
+  nautilus: 14
+  octopus: 15
+  pacific: 16
+  quincy: 17
+  reef: 18
+  squid: 19
+ceph_keyrings: ['admin']
+ceph_network_public: ''
+ceph_network_private: ''
+ceph_rbd_cache: "128Mi"
+ceph_rbd_cache_max: "96Mi"
+ceph_rbd_cache_target: "64Mi"
