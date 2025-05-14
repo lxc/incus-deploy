@@ -2,3 +2,9 @@
 ---
 - name: Add keys and dertificates generation handlers
   ansible.builtin.import_tasks: certificates.yml
+
+- name: Add the repository registration handlers
+  ansible.builtin.import_tasks: repo_deb.yml
+
+- name: Add the package installation handlers
+  ansible.builtin.import_tasks: packages.yml

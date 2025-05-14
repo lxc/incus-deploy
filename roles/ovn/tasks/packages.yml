@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Check if distribution is supported
+  ansible.builtin.meta: end_play
+  when: 'ansible_distribution not in ("Ubuntu", "Debian")'
+
+- name: Install the OVN central package
+  ansible.builtin.apt:
+    name:
+      - ovn-central
+    install_recommends: false
+    state: present
+  when: '"central" in ovn_roles'
+
+- name: Install the OVN IC database package
+  ansible.builtin.apt:
+    name:
+      - ovn-ic-db
+    install_recommends: false
+    state: present
+  when: '"ic-db" in ovn_roles'
+
+- name: Install the OVN IC package
+  ansible.builtin.apt:
+    name:
+      - ovn-ic
+    install_recommends: false
+    state: present
+  when: '"ic" in ovn_roles'
+
+- name: Install the OVN host package
+  ansible.builtin.apt:
+    name:
+      - ovn-host
+    install_recommends: false
+    state: present
+  notify:
+    - Configure OVS
+    - Enable OVN IC gateway
+  when: '"host" in ovn_roles'

@@ -5,3 +5,15 @@
 
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
+
+- name: Register the Debian repository
+  ansible.builtin.import_tasks: "repo_deb.yml"
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Install packages
+  ansible.builtin.import_tasks: "packages.yml"
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

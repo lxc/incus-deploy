@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Check if distribution is supported
+  ansible.builtin.meta: end_play
+  when: 'ansible_distribution not in ("Ubuntu", "Debian")'
+
+- name: Create apt keyring path
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/
+    mode: "0755"
+    state: directory
+  when: 'ovn_roles|length > 0 and ovn_release != "distro"'
+
+- name: Add PPA GPG key
+  ansible.builtin.copy:
+    src: ovn-ppa.asc
+    dest: /etc/apt/keyrings/ansible-ovn-ppa.asc
+    mode: "0644"
+  notify: Update apt
+  when: 'ovn_roles|length > 0 and ovn_release == "ppa"'
+
+- name: Get DPKG architecture
+  ansible.builtin.command: dpkg --print-architecture
+  register: dpkg_architecture
+  changed_when: false
+  check_mode: false
+  when: 'ovn_roles|length > 0 and ovn_release != "distro"'
+
+- name: Add OVN PPA package source
+  ansible.builtin.template:
+    src: ovn-ppa.sources.j2
+    dest: /etc/apt/sources.list.d/ansible-ovn-ppa.sources
+    mode: "0644"
+  notify: Update apt
+  when: 'ovn_roles|length > 0 and ovn_release == "ppa"'

@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Configure OVS
+  ansible.builtin.command: >-
+    ovs-vsctl set open_vswitch .
+    external_ids:hostname={{ inventory_hostname }}
+    external_ids:ovn-remote={{ ovn_central_southbound }}
+    external_ids:ovn-encap-type=geneve
+    external_ids:ovn-encap-ip={{ ovn_ip_address }}
+  changed_when: true
+
+- name: Enable OVN IC gateway
+  ansible.builtin.command: >-
+    ovs-vsctl set open_vswitch .
+    external_ids:ovn-is-interconn=true
+  changed_when: true
+  when: '"ic-gateway" in ovn_roles'
