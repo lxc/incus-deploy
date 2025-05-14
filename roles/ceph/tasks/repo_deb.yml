@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Create keyring path
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/
+    mode: "0755"
+    state: directory
+  when: 'ceph_roles|length > 0 and ceph_release != "distro"'
+
+- name: Add ceph GPG key
+  ansible.builtin.copy:
+    src: ceph.asc
+    dest: /etc/apt/keyrings/ansible-ceph.asc
+    mode: "0644"
+  notify: Update apt
+  when: 'ceph_roles|length > 0 and ceph_release != "distro"'
+
+- name: Get local architecture
+  ansible.builtin.command: dpkg --print-architecture
+  register: dpkg_architecture
+  changed_when: false
+  check_mode: false
+  when: 'ceph_roles|length > 0 and ceph_release != "distro"'
+
+- name: Add ceph package sources
+  ansible.builtin.template:
+    src: ceph.sources.j2
+    dest: /etc/apt/sources.list.d/ansible-ceph.sources
+    mode: "0644"
+  notify: Update apt
+  when: 'ceph_roles|length > 0 and ceph_release != "distro"'

@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+ceph_release: 'squid'
+ceph_roles: []
