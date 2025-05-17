@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Add keys and dertificates generation tasks
+  ansible.builtin.import_tasks: certificates.yml
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Register the Debian repository
+  ansible.builtin.import_tasks: "repo_deb.yml"
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Install packages
+  ansible.builtin.import_tasks: "packages.yml"
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Configure daemons
+  ansible.builtin.import_tasks: "configuration.yml"

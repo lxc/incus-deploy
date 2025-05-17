@@ -1,6 +1,0 @@
-# SPDX-License-Identifier: Apache-2.0
----
-ovn_pki_clients: "{{ ovn_clients | default([]) }}"
-ovn_pki_name: "{{ ovn_name | default('') }}"
-ovn_pki_path: "../data/ovn/{{ ovn_pki_name }}/"
-ovn_pki_roles: "{{ ovn_roles | default([]) }}"

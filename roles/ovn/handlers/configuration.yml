@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Configure OVN central northbound DB for SSL (certs)
+  ansible.builtin.command: >-
+    ovn-nbctl set-ssl /etc/ovn/{{ ovn_name }}.server.key
+    /etc/ovn/{{ ovn_name }}.server.crt
+    /etc/ovn/{{ ovn_name }}.ca.crt
+  when: '"central" in ovn_roles'
+  changed_when: true
+
+- name: Configure OVN central northbound DB for SSL (ports)
+  ansible.builtin.command: >-
+    ovn-nbctl set-connection pssl:6641:[::]
+  when: '"central" in ovn_roles'
+  changed_when: true
+
+- name: Configure OVN central southbound DB for SSL (certs)
+  ansible.builtin.command: >-
+    ovn-sbctl set-ssl /etc/ovn/{{ ovn_name }}.server.key
+    /etc/ovn/{{ ovn_name }}.server.crt
+    /etc/ovn/{{ ovn_name }}.ca.crt
+  when: '"central" in ovn_roles'
+  changed_when: true
+
+- name: Configure OVN central southbound DB for SSL (ports)
+  ansible.builtin.command: >-
+    ovn-sbctl set-connection pssl:6642:[::]
+  when: '"central" in ovn_roles'
+  changed_when: true
+
+- name: Configure OVN IC northbound DB for SSL (certs)
+  ansible.builtin.command: >-
+    ovn-ic-nbctl set-ssl /etc/ovn/{{ ovn_name }}.server.key
+    /etc/ovn/{{ ovn_name }}.server.crt
+    /etc/ovn/{{ ovn_name }}.ca.crt
+  when: '"ic-db" in ovn_roles'
+  changed_when: true
+
+- name: Configure OVN IC northbound DB for SSL (ports)
+  ansible.builtin.command: >-
+    ovn-ic-nbctl set-connection pssl:6645:[::]
+  when: '"ic-db" in ovn_roles'
+  changed_when: true
+
+- name: Configure OVN IC southbound DB for SSL (certs)
+  ansible.builtin.command: >-
+    ovn-ic-sbctl set-ssl /etc/ovn/{{ ovn_name }}.server.key
+    /etc/ovn/{{ ovn_name }}.server.crt
+    /etc/ovn/{{ ovn_name }}.ca.crt
+  when: '"ic-db" in ovn_roles'
+  changed_when: true
+
+- name: Configure OVN IC southbound DB for SSL (ports)
+  ansible.builtin.command: >-
+    ovn-ic-sbctl set-connection pssl:6646:[::]
+  when: '"ic-db" in ovn_roles'
+  changed_when: true
+
+- name: Restart OVN central
+  ansible.builtin.systemd:
+    name: ovn-central.service
+    state: restarted
+
+- name: Restart OVN host
+  ansible.builtin.systemd:
+    name: ovn-host.service
+    state: restarted
+
+- name: Restart OVN IC
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: ovn-ic.service
+    state: restarted
+  when: '"ic" in ovn_roles'
+
+- name: Restart OVN IC databases
+  ansible.builtin.systemd:
+    name: ovn-ic-db.service
+    state: restarted
+  when: '"ic-db" in ovn_roles'
+
+- name: Configure OVN AZ name
+  ansible.builtin.command: >-
+    ovn-nbctl --db={{ ovn_central_northbound }}
+    -c /etc/ovn/{{ ovn_name }}.server.crt
+    -p /etc/ovn/{{ ovn_name }}.server.key
+    -C /etc/ovn/{{ ovn_name }}.ca.crt
+    set NB_Global . name={{ ovn_az_name }}
+  when: '"central" in ovn_roles and ovn_az_name'
+  changed_when: true
+
+- name: Enable OVN IC route sharing
+  ansible.builtin.command: >-
+    ovn-nbctl --db={{ ovn_central_northbound }}
+    -c /etc/ovn/{{ ovn_name }}.server.crt
+    -p /etc/ovn/{{ ovn_name }}.server.key
+    -C /etc/ovn/{{ ovn_name }}.ca.crt
+    set NB_Global . options:ic-route-adv=true options:ic-route-learn=true
+  when: '"central" in ovn_roles and ovn_az_name'
+  changed_when: true

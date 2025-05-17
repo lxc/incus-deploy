@@ -3,33 +3,33 @@
 - name: Create cluster directory
   delegate_to: 127.0.0.1
   ansible.builtin.file:
-    path: "../data/ovn/{{ ovn_pki_name }}"
+    path: "../data/ovn/{{ ovn_name }}"
     mode: "0755"
     state: directory
   throttle: 1
-  when: '"central" in ovn_pki_roles or "host" in ovn_pki_roles'
+  when: '"central" in ovn_roles or "host" in ovn_roles'
 
 - name: Create CA private key
   delegate_to: 127.0.0.1
   community.crypto.openssl_privatekey:
-    path: "{{ ovn_pki_path }}/ca.key"
+    path: "{{ ovn_path }}/ca.key"
   notify: Create CA signing request
   throttle: 1
-  when: '"central" in ovn_pki_roles or "host" in ovn_pki_roles'
+  when: '"central" in ovn_roles or "host" in ovn_roles'
 
 - name: Create server keys
   delegate_to: 127.0.0.1
   community.crypto.openssl_privatekey:
-    path: "{{ ovn_pki_path }}/{{ inventory_hostname }}.key"
+    path: "{{ ovn_path }}/{{ inventory_hostname }}.key"
   notify: Create server signing request
-  when: 'ovn_pki_roles | length > 0'
+  when: 'ovn_roles | length > 0'
 
 - name: Create client keys
   delegate_to: 127.0.0.1
   community.crypto.openssl_privatekey:
-    path: "{{ ovn_pki_path }}/{{ item }}.key"
+    path: "{{ ovn_path }}/{{ item }}.key"
   register: client_key
   notify: Create client signing request
-  when: 'ovn_pki_roles | length > 0'
-  loop: "{{ ovn_pki_clients }}"
+  when: 'ovn_roles | length > 0'
+  loop: "{{ ovn_clients }}"
   throttle: 1
