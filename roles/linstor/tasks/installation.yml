@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Install linstor-satellite
+  ansible.builtin.apt:
+    name:
+      - drbd-dkms
+      - drbd-utils
+      - linstor-satellite
+      - lvm2
+      - python3-setuptools
+      - zfsutils-linux
+    state: present
+  when: '"satellite" in linstor_roles'
+
+- name: Install linstor-controller
+  ansible.builtin.apt:
+    name:
+      - linstor-controller
+      - linstor-client
+    state: present
+  when: '"controller" in linstor_roles'
