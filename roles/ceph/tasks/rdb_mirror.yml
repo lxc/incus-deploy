@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Enable ceph rbd-mirror
+  ansible.builtin.systemd:
+    enabled: true
+    name: ceph-rbd-mirror@admin
+    state: started
+  when: '"rbd-mirror" in ceph_roles'

@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Create /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}
+  ansible.builtin.file:
+    path: /var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}
+    owner: ceph
+    group: ceph
+    mode: "0770"
+    state: directory
+  register: deploy_mgr
+  when: '"mgr" in ceph_roles'
+
+- name: Create mgr keyring
+  delegate_to: "{{ lookup('template', 'ceph.monitors.names.j2') | from_yaml | first }}"
+  ansible.builtin.command:
+    cmd: ceph auth get-or-create mgr.{{ inventory_hostname_short }} mon 'allow profile mgr' osd 'allow *' mds 'allow *'
+  register: mgr_keyring
+  when: '"mgr" in ceph_roles and deploy_mgr.changed'
+  changed_when: true
+
+- name: Transfer mgr keyring
+  ansible.builtin.copy:
+    content: "{{ mgr_keyring.stdout }}\n"
+    dest: "/var/lib/ceph/mgr/ceph-{{ inventory_hostname_short }}/keyring"
+    owner: ceph
+    group: ceph
+    mode: "0660"
+  when: '"mgr" in ceph_roles and deploy_mgr.changed'
+
+- name: Enable ceph mgr
+  ansible.builtin.systemd:
+    enabled: true
+    name: ceph-mgr@{{ inventory_hostname_short }}
+    state: started
+  when: '"mgr" in ceph_roles'

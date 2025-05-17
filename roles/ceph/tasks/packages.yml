@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Install ceph-common
+  ansible.builtin.package:
+    name:
+      - ceph-common
+    state: present
+  when: '"client" in ceph_roles'
+
+- name: Install ceph-mon
+  ansible.builtin.package:
+    name:
+      - ceph-mon
+    state: present
+  when: '"mon" in ceph_roles'
+
+- name: Install ceph-mgr dependencies
+  ansible.builtin.package:
+    name:
+      - python3-distutils
+    state: present
+  when: 'ansible_distribution in ("Ubuntu", "Debian") and "mgr" in ceph_roles and ceph_release != "distro"'
+
+- name: Install ceph-mgr
+  ansible.builtin.package:
+    name:
+      - ceph-mgr
+    state: present
+  when: '"mgr" in ceph_roles'
+
+- name: Install ceph-mds
+  ansible.builtin.package:
+    name:
+      - ceph-mds
+    state: present
+  when: '"mds" in ceph_roles'
+
+- name: Install ceph-osd
+  ansible.builtin.package:
+    name:
+      - ceph-osd
+      - python3-packaging
+    state: present
+  when: '"osd" in ceph_roles'
+
+- name: Install ceph-volume
+  ansible.builtin.package:
+    name:
+      - ceph-volume
+    state: present
+  when: '"osd" in ceph_roles and (ceph_release != "distro" or ansible_distribution_release not in ("bookworm", "focal"))'
+
+- name: Install ceph-rbd-mirror
+  ansible.builtin.package:
+    name:
+      - rbd-mirror
+    state: present
+  when: '"rbd-mirror" in ceph_roles'
+
+- name: Install radosgw (deb)
+  ansible.builtin.package:
+    name:
+      - radosgw
+    state: present
+  when: 'ansible_distribution in ("Debian", "Ubuntu") and "rgw" in ceph_roles'
+
+- name: Install radosgw (rpm)
+  ansible.builtin.package:
+    name:
+      - ceph-radosgw
+    state: present
+  when: 'ansible_distribution == "CentOS" and "rgw" in ceph_roles'

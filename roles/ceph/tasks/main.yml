@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Install debian repository
+  ansible.builtin.import_tasks: repo_deb.yml
+  when: 'ansible_distribution in ("Ubuntu", "Debian")'
+
+- name: Install centos repository
+  ansible.builtin.import_tasks: repo_dnf.yml
+  when: 'ansible_distribution == "CentOS"'
+
+- name: Force handler execution
+  ansible.builtin.meta: flush_handlers
+
+- name: Install packages
+  ansible.builtin.import_tasks: packages.yml
+
+- name: Check if part of Ceph
+  ansible.builtin.meta: end_host
+  when: "not ceph_fsid"
+
+- name: Create cluster keys
+  ansible.builtin.import_tasks: create_keys.yml
+  when: "lookup('template', 'ceph.monitors.names.j2') | from_yaml | sort | first == inventory_hostname"
+
+- name: Force handler execution
+  ansible.builtin.meta: flush_handlers
+
+- name: Deploy cluster keys
+  ansible.builtin.import_tasks: deploy_keys.yml
+
+- name: Force handler execution
+  ansible.builtin.meta: flush_handlers
+
+- name: Configure ceph mon
+  ansible.builtin.import_tasks: mon.yml
+
+- name: Force handler execution
+  ansible.builtin.meta: flush_handlers
+
+- name: Configure ceph osd
+  ansible.builtin.import_tasks: osd.yml
+
+- name: Configure ceph mgr
+  ansible.builtin.import_tasks: mgr.yml
+
+- name: Configure ceph mds
+  ansible.builtin.import_tasks: mds.yml
+
+- name: Configure ceph rgw
+  ansible.builtin.import_tasks: rgw.yml
+
+- name: Configure ceph rbd-mirror
+  ansible.builtin.import_tasks: rdb_mirror.yml

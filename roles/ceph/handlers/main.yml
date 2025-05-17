@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Debian repository installation handlers
+  ansible.builtin.import_tasks: repo_deb.yml
+
+- name: Cluster keys creation handlers
+  ansible.builtin.import_tasks: create_keys.yml
+
+- name: Cluster keys deployment handlers
+  ansible.builtin.import_tasks: deploy_keys.yml
+
+- name: Ceph mon configuration handlers
+  ansible.builtin.import_tasks: mon.yml
