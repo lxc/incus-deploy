@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+lvmcluster_name: ""
+lvmcluster_metadata_size: "10m"
+lvmcluster_vgs: {}
