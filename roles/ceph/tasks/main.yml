@@ -14,40 +14,46 @@
 - name: Install packages
   ansible.builtin.import_tasks: packages.yml
 
-- name: Check if part of Ceph
-  ansible.builtin.meta: end_host
-  when: "not ceph_fsid"
-
 - name: Create cluster keys
   ansible.builtin.import_tasks: create_keys.yml
-  when: "lookup('template', 'ceph.monitors.names.j2') | from_yaml | sort | first == inventory_hostname"
+  when: "ceph_fsid and lookup('template', 'ceph.monitors.names.j2') | from_yaml | sort | first == inventory_hostname"
 
 - name: Force handler execution
   ansible.builtin.meta: flush_handlers
+  when: "ceph_fsid"
 
 - name: Deploy cluster keys
   ansible.builtin.import_tasks: deploy_keys.yml
+  when: "ceph_fsid"
 
 - name: Force handler execution
   ansible.builtin.meta: flush_handlers
+  when: "ceph_fsid"
 
 - name: Configure ceph mon
   ansible.builtin.import_tasks: mon.yml
+  when: "ceph_fsid"
 
 - name: Force handler execution
   ansible.builtin.meta: flush_handlers
+  when: "ceph_fsid"
 
 - name: Configure ceph osd
   ansible.builtin.import_tasks: osd.yml
+  when: "ceph_fsid"
 
 - name: Configure ceph mgr
   ansible.builtin.import_tasks: mgr.yml
+  when: "ceph_fsid"
 
 - name: Configure ceph mds
   ansible.builtin.import_tasks: mds.yml
+  when: "ceph_fsid"
 
 - name: Configure ceph rgw
   ansible.builtin.import_tasks: rgw.yml
+  when: "ceph_fsid"
 
 - name: Configure ceph rbd-mirror
   ansible.builtin.import_tasks: rdb_mirror.yml
+  when: "ceph_fsid"

@@ -2,18 +2,24 @@
 ---
 - name: Add the Debian repository registration
   ansible.builtin.import_tasks: repo_deb.yml
+  when: 'ansible_distribution == "Ubuntu" and ansible_distribution_release != "focal"'
 
 - name: Flush the handlers
   ansible.builtin.meta: flush_handlers
+  when: 'ansible_distribution == "Ubuntu" and ansible_distribution_release != "focal"'
 
 - name: Install the package for Linstor
   ansible.builtin.import_tasks: installation.yml
+  when: 'ansible_distribution == "Ubuntu" and ansible_distribution_release != "focal"'
 
 - name: Enable Linstor Services
   ansible.builtin.import_tasks: services.yml
+  when: 'ansible_distribution == "Ubuntu" and ansible_distribution_release != "focal"'
 
 - name: Create Linstor Satellite
   ansible.builtin.import_tasks: satellite.yml
+  when: 'ansible_distribution == "Ubuntu" and ansible_distribution_release != "focal"'
 
 - name: Create storage pool and add the disks
   ansible.builtin.import_tasks: storage.yml
+  when: 'ansible_distribution == "Ubuntu" and ansible_distribution_release != "focal"'

@@ -1,9 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
-- name: Check if distribution is supported
-  ansible.builtin.meta: end_play
-  when: 'ansible_distribution not in ("Ubuntu", "Debian")'
-
 - name: Create OVN config directory
   ansible.builtin.file:
     path: /etc/ovn
