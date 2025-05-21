@@ -3,7 +3,7 @@
 - name: Create CA signing request
   delegate_to: 127.0.0.1
   community.crypto.openssl_csr_pipe:
-    privatekey_path: "{{ ovn_path }}/ca.key"
+    privatekey_path: "{{ ovn_config_dir }}/ca.key"
     common_name: "OVN CA for {{ ovn_name }}"
     use_common_name_for_san: false
     basic_constraints:
@@ -19,16 +19,16 @@
 - name: Issue CA certificate
   delegate_to: 127.0.0.1
   community.crypto.x509_certificate:
-    path: "{{ ovn_path }}/ca.crt"
+    path: "{{ ovn_config_dir }}/ca.crt"
     csr_content: "{{ ca_csr.csr }}"
-    privatekey_path: "{{ ovn_path }}/ca.key"
+    privatekey_path: "{{ ovn_config_dir }}/ca.key"
     provider: selfsigned
   throttle: 1
 
 - name: Create server signing request
   delegate_to: 127.0.0.1
   community.crypto.openssl_csr_pipe:
-    privatekey_path: "{{ ovn_path }}/{{ inventory_hostname }}.key"
+    privatekey_path: "{{ ovn_config_dir }}/{{ inventory_hostname }}.key"
     common_name: "OVN certificate for {{ inventory_hostname }}"
     use_common_name_for_san: false
   register: cert_csr
@@ -37,10 +37,10 @@
 - name: Issue server certificate
   delegate_to: 127.0.0.1
   community.crypto.x509_certificate:
-    path: "{{ ovn_path }}/{{ inventory_hostname }}.crt"
+    path: "{{ ovn_config_dir }}/{{ inventory_hostname }}.crt"
     csr_content: "{{ cert_csr.csr }}"
-    ownca_path: "{{ ovn_path }}/ca.crt"
-    ownca_privatekey_path: "{{ ovn_path }}/ca.key"
+    ownca_path: "{{ ovn_config_dir }}/ca.crt"
+    ownca_privatekey_path: "{{ ovn_config_dir }}/ca.key"
     ownca_not_after: "+3650d"
     ownca_not_before: "-1d"
     provider: ownca
@@ -49,7 +49,7 @@
 - name: Create client signing request
   delegate_to: 127.0.0.1
   community.crypto.openssl_csr_pipe:
-    privatekey_path: "{{ ovn_path }}/{{ item.item }}.key"
+    privatekey_path: "{{ ovn_config_dir }}/{{ item.item }}.key"
     common_name: "OVN client certificate for {{ item.item }}"
     use_common_name_for_san: false
   register: client_csr
@@ -59,10 +59,10 @@
 - name: Issue client certificate
   delegate_to: 127.0.0.1
   community.crypto.x509_certificate:
-    path: "{{ ovn_path }}/{{ item.item.item }}.crt"
+    path: "{{ ovn_config_dir }}/{{ item.item.item }}.crt"
     csr_content: "{{ item.csr }}"
-    ownca_path: "{{ ovn_path }}/ca.crt"
-    ownca_privatekey_path: "{{ ovn_path }}/ca.key"
+    ownca_path: "{{ ovn_config_dir }}/ca.crt"
+    ownca_privatekey_path: "{{ ovn_config_dir }}/ca.key"
     ownca_not_after: "+3650d"
     ownca_not_before: "-1d"
     provider: ownca

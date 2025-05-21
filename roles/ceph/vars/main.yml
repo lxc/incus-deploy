@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
-ceph_bootstrap_osd_keyring: ../data/ceph/cluster.{{ ceph_fsid }}.bootstrap-osd.keyring
-ceph_client_admin_keyring: ../data/ceph/cluster.{{ ceph_fsid }}.client.admin.keyring
-ceph_mon_keyring: ../data/ceph/cluster.{{ ceph_fsid }}.mon.keyring
-ceph_mon_map: ../data/ceph/cluster.{{ ceph_fsid }}.mon.map
+ceph_config_dir: "{{ config_root_dir | default('..') }}/data/ceph"
+ceph_bootstrap_osd_keyring: "{{ ceph_config_dir }}/cluster.{{ ceph_fsid }}.bootstrap-osd.keyring"
+ceph_client_admin_keyring: "{{ ceph_config_dir }}/cluster.{{ ceph_fsid }}.client.admin.keyring"
+ceph_mon_keyring: "{{ ceph_config_dir }}/cluster.{{ ceph_fsid }}.mon.keyring"
+ceph_mon_map: "{{ ceph_config_dir }}/cluster.{{ ceph_fsid }}.mon.map"
