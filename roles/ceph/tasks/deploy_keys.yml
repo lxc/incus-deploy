@@ -47,7 +47,7 @@
 
 - name: Transfer additional client keyrings
   ansible.builtin.copy:
-    src: '../data/ceph/cluster.{{ ceph_fsid }}.client.{{ item }}.keyring'
+    src: '{{ ceph_config_dir }}/cluster.{{ ceph_fsid }}.client.{{ item }}.keyring'
     dest: '/etc/ceph/ceph.client.{{ item }}.keyring'
     owner: ceph
     group: ceph

@@ -19,7 +19,7 @@
 
 - name: Transfer netplan configuration
   ansible.builtin.copy:
-    src: ../data/netplan/{{ inventory_hostname }}.yaml
+    src: "{{ netplan_config_dir }}/{{ inventory_hostname }}.yaml"
     dest: /etc/netplan/00-ansible-main.yaml
     mode: "0600"
   notify: Apply netplan
