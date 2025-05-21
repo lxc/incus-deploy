@@ -1,3 +1,27 @@
 - import_playbook: books/local.early.yaml
-- import_playbook: books/incus.yaml
+
+- name: Install and configure Incus and its whole stack
+  hosts: all
+  collections:
+    - lxc.incus
+  order: shuffle
+  gather_facts: yes
+  gather_subset:
+    - "default_ipv4"
+    - "default_ipv6"
+    - "distribution_release"
+  any_errors_fatal: true
+  vars:
+    config_root_dir: "{{ '.' | ansible.builtin.realpath }}" 
+  roles:
+    - role: system_settings
+    - role: netplan
+    - role: ntp
+    - role: nvme
+    - role: ceph
+    - role: linstor
+    - role: lvmcluster
+    - role: ovn
+    - role: incus
+
 - import_playbook: books/local.late.yaml

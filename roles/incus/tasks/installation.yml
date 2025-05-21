@@ -109,9 +109,9 @@
   ansible.builtin.command: >-
     incus --force-local config
     set network.ovn.northbound_connection={{ incus_ovn_northbound }}
-    network.ovn.client_cert="{{ lookup('file', '../data/ovn/'+ovn_name+'/'+inventory_hostname+'.crt') }}"
-    network.ovn.client_key="{{ lookup('file', '../data/ovn/'+ovn_name+'/'+inventory_hostname+'.key') }}"
-    network.ovn.ca_cert="{{ lookup('file', '../data/ovn/'+ovn_name+'/ca.crt') }}"
+    network.ovn.client_cert="{{ lookup('file', ovn_config_dir+'/'+inventory_hostname+'.crt') }}"
+    network.ovn.client_key="{{ lookup('file', ovn_config_dir+'/'+inventory_hostname+'.key') }}"
+    network.ovn.ca_cert="{{ lookup('file', ovn_config_dir+'/ca.crt') }}"
   notify: Restart Incus
   when: >-
     (install_deb.changed or install_rpm.changed) and
