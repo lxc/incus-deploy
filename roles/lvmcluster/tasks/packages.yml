@@ -14,7 +14,7 @@
     mode: "0644"
   when: 'lvmcluster_name'
   vars:
-    lvmcluster_host_ids: "{{ lookup('file', '../data/lvmcluster/' + lvmcluster_name + '/host_id.yaml') | from_yaml }}"
+    lvmcluster_host_ids: "{{ lookup('file', lvmcluster_config_dir + '/' + lvmcluster_name + '/host_id.yaml') | from_yaml }}"
 
 - name: Enable the lvmlockd unit
   ansible.builtin.systemd:

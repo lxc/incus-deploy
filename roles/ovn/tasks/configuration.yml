@@ -9,21 +9,21 @@
 
 - name: Transfer OVN CA certificate
   ansible.builtin.copy:
-    src: "{{ ovn_path }}/ca.crt"
+    src: "{{ ovn_config_dir }}/ca.crt"
     dest: /etc/ovn/{{ ovn_name }}.ca.crt
     mode: "0644"
   when: 'ovn_roles | length > 0'
 
 - name: Transfer OVN server certificate
   ansible.builtin.copy:
-    src: "{{ ovn_path }}/{{ inventory_hostname }}.crt"
+    src: "{{ ovn_config_dir }}/{{ inventory_hostname }}.crt"
     dest: /etc/ovn/{{ ovn_name }}.server.crt
     mode: "0644"
   when: 'ovn_roles | length > 0'
 
 - name: Transfer OVN server key
   ansible.builtin.copy:
-    src: "{{ ovn_path }}/{{ inventory_hostname }}.key"
+    src: "{{ ovn_config_dir }}/{{ inventory_hostname }}.key"
     dest: /etc/ovn/{{ ovn_name }}.server.key
     mode: "0600"
   when: 'ovn_roles | length > 0'

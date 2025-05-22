@@ -3,7 +3,7 @@
 - name: Check if a Netplan configuration exists
   delegate_to: localhost
   ansible.builtin.stat:
-    path: ../data/netplan/{{ inventory_hostname }}.yaml
+    path: "{{ netplan_config_dir }}/{{ inventory_hostname }}.yaml"
   register: main_file
   notify:
     - Ensure netplan is installed

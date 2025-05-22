@@ -70,30 +70,22 @@ jobs:
       - name: Deploy the test VMs
         run: |
           cd ansible
-          if [ "${{ matrix.os }}" = "centos/9-Stream" ]; then
-            cp hosts.yaml.example.centos hosts.yaml
-          else
-            cp hosts.yaml.example hosts.yaml
-          fi
 
           ansible-playbook tasks/update-packages.yaml
-
-          if [ "${{ matrix.os }}" != "ubuntu/22.04" ] && [ "${{ matrix.os }}" != "ubuntu/24.04" ]; then
-            # Linstor is only available on jammy and noble.
-            sed -i -e '/linstor:/,+4d' hosts.yaml
-          fi
-
-          if [ "${{ matrix.os }}" = "ubuntu/20.04" ]; then
-            # Ubuntu 20.04's OVN is too old.
-            sed -i "s/ovn_release:.*/ovn_release: \"ppa\"/g" hosts.yaml
-          elif [ "${{ matrix.os }}" = "debian/12" ]; then
-            # ZFS on Debian needs compiling which is slow, use btrfs instead
-            sed -i "s/driver: zfs/driver: btrfs/g" hosts.yaml
-          fi
-
           ansible-galaxy install -r ansible_requirements.yml
 
-          ansible-playbook deploy.yaml
+          if [ "${{ matrix.os }}" = "centos/9-Stream" ]; then
+            ansible-playbook deploy-centos.yaml
+          elif [ "${{ matrix.os }}" = "ubuntu/20.04" ]; then
+            ansible-playbook deploy-ubuntu20.yaml
+          elif [ "${{ matrix.os }}" = "ubuntu/22.04" ] || [ "${{ matrix.os }}" = "ubuntu/24.04" ]; then
+            ansible-playbook deploy-ubuntu.yaml
+          elif [ "${{ matrix.os }}" = "debian/12" ]; then
+            ansible-playbook deploy-debian12.yaml
+          else
+            echo "unsupported os: ${{ matrix.os }}"
+            exit 1
+          fi
 
       - name: Post deployment validation
         run: |
