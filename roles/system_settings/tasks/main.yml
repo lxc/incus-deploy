@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Incus set sysctl
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { name: "fs.aio-max-nr", value: "524288"}
+    - { name: "fs.inotify.max_queued_events", value: "1048576"}
+    - { name: "fs.inotify.max_user_instances", value: "1048576"}
+    - { name: "fs.inotify.max_user_watches", value: "1048576"}
+    - { name: "kernel.keys.maxbytes", value: "2000000"}
+    - { name: "kernel.keys.maxkeys", value: "2000"}
+    - { name: "net.core.bpf_jit_limit", value: "1000000000"}
+    - { name: "net.ipv4.neigh.default.gc_thresh3", value: "8192"}
+    - { name: "net.ipv6.neigh.default.gc_thresh3", value: "8192"}
+    - { name: "vm.max_map_count", value: "262144"}
+
+- name: Incus PAM limits
+  community.general.pam_limits:
+    domain: "{{ item.domain }}"
+    limit_type: "{{ item.limit_type }}"
+    limit_item: "{{ item.limit_item }}"
+    value: "{{ item.value }}"
+  loop:
+    - { domain: "*", limit_type: "soft", limit_item: "nofile", value: "1048576"}
+    - { domain: "*", limit_type: "hard", limit_item: "nofile", value: "1048576"}
+    - { domain: "root", limit_type: "soft", limit_item: "nofile", value: "1048576"}
+    - { domain: "root", limit_type: "hard", limit_item: "nofile", value: "1048576"}
+    - { domain: "*", limit_type: "soft", limit_item: "memlock", value: "unlimited"}
+    - { domain: "*", limit_type: "hard", limit_item: "memlock", value: "unlimited"}
+    - { domain: "root", limit_type: "soft", limit_item: "memlock", value: "unlimited"}
+    - { domain: "root", limit_type: "hard", limit_item: "memlock", value: "unlimited"}
