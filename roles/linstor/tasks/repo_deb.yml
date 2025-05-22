@@ -1,9 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
-- name: Check if distribution is supported
-  ansible.builtin.meta: end_play
-  when: 'ansible_distribution != "Ubuntu" or ansible_distribution_release == "focal"'
-
 - name: Create apt keyring path
   ansible.builtin.file:
     path: /etc/apt/keyrings/
