@@ -2,5 +2,5 @@
 - name: Local - Run some late tasks
   hosts: all
   order: shuffle
-  gather_facts: no
+  gather_facts: false
   any_errors_fatal: true

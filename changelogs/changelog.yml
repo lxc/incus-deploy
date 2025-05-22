@@ -1,0 +1,7 @@
+---
+releases:
+  devel:
+    changes:
+      release_summary: This is the initial lxc.incus collection release. Enjoy!
+      major_changes:
+        - system_settings - a role for Incus system settings

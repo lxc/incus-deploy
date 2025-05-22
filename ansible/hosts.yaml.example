@@ -23,7 +23,7 @@ all:
         ansible_connection: community.general.incus
         ansible_incus_remote: local
         ansible_user: root
-        ansible_become: no
+        ansible_become: false
         ansible_incus_project: dev-incus-deploy
 
         ceph_roles:

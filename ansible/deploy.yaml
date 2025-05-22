@@ -1,3 +1,8 @@
-- import_playbook: books/local.early.yaml
-- import_playbook: books/incus.yaml
-- import_playbook: books/local.late.yaml
+- name: Apply pre-configuration steps
+  import_playbook: books/local.early.yaml
+
+- name: Apply incus and its dependencies
+  import_playbook: books/incus.yaml
+
+- name: Apply post-configuration steps
+  import_playbook: books/local.late.yaml

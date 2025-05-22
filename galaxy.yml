@@ -1,15 +1,15 @@
-#SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: Apache-2.0
 ---
 namespace: lxc
 name: incus
 version: 0.0.1
 readme: README.md
 authors:
-- Stéphane Graber 
+  - Stéphane Graber
 description: a collection of roles and modules to deploy incus
 license:
-- Apache-2.0
-tags: ["lxc", "incus"]
+  - Apache-2.0
+tags: ["lxc", "incus", "cloud", "linux"]
 dependencies:
   community.general: ">=10.4.0"
   community.crypto: ">=2.20.0"
