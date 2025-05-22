@@ -1,10 +1,8 @@
 ---
 - name: Incus - recommended system settings
-  collections:
-    - lxc.incus
   hosts: all
   order: shuffle
-  gather_facts: yes
+  gather_facts: true
   any_errors_fatal: true
   roles:
-    - role: system_settings
+    - role: lxc.incus.system_settings

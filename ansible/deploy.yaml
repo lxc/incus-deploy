@@ -1,11 +1,32 @@
-- import_playbook: books/local.early.yaml
-- import_playbook: books/system_settings.yaml
-- import_playbook: books/netplan.yaml
-- import_playbook: books/environment.yaml
-- import_playbook: books/nvme.yaml
-- import_playbook: books/ceph.yaml
-- import_playbook: books/linstor.yaml
-- import_playbook: books/lvmcluster.yaml
-- import_playbook: books/ovn.yaml
-- import_playbook: books/incus.yaml
-- import_playbook: books/local.late.yaml
+- name: Apply pre-configuration steps
+  import_playbook: books/local.early.yaml
+
+- name: Apply system settings
+  import_playbook: books/system_settings.yaml
+
+- name: Apply netplan
+  import_playbook: books/netplan.yaml
+
+- name: Apply ntp
+  import_playbook: books/environment.yaml
+
+- name: Apply nvme
+  import_playbook: books/nvme.yaml
+
+- name: Apply ceph
+  import_playbook: books/ceph.yaml
+
+- name: Apply linstor
+  import_playbook: books/linstor.yaml
+
+- name: Apply lvmcluster
+  import_playbook: books/lvmcluster.yaml
+
+- name: Apply ovn
+  import_playbook: books/ovn.yaml
+
+- name: Apply incus
+  import_playbook: books/incus.yaml
+
+- name: Apply post-configuration steps
+  import_playbook: books/local.late.yaml

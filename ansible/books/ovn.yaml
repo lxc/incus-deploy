@@ -1,14 +1,12 @@
 ---
 - name: OVN - Certificates and Packages
-  collections:
-    - lxc.incus
   hosts: all
   order: shuffle
-  gather_facts: yes
+  gather_facts: true
   gather_subset:
     - "distribution_release"
     - "default_ipv4"
     - "default_ipv6"
   any_errors_fatal: true
   roles:
-    - role: ovn
+    - role: lxc.incus.ovn
