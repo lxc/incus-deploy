@@ -1,0 +1,15 @@
+all:
+  children:
+    baremetal:
+      vars:
+        ansible_connection: community.general.incus
+        ansible_incus_remote: local
+        ansible_user: root
+        ansible_become: no
+        ansible_incus_project: dev-incus-deploy
+      hosts:
+        server01:
+        server02:
+        server03:
+        server04:
+        server05:
