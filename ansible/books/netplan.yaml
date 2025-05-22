@@ -1,12 +1,10 @@
 ---
 - name: Netplan - Override system configuration
   hosts: all
-  collections:
-    - lxc.incus
   order: shuffle
-  gather_facts: yes
+  gather_facts: true
   gather_subset:
     - "distribution_release"
   any_errors_fatal: true
   roles:
-    - role: netplan
+    - role: lxc.incus.netplan

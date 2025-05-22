@@ -12,16 +12,16 @@ jobs:
     name: Signed-off-by (DCO)
     runs-on: ubuntu-24.04
     steps:
-    - name: Get PR Commits
-      id: 'get-pr-commits'
-      uses: tim-actions/get-pr-commits@master
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get PR Commits
+        id: 'get-pr-commits'
+        uses: tim-actions/get-pr-commits@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Check that all commits are signed-off
-      uses: tim-actions/dco@master
-      with:
-        commits: ${{ steps.get-pr-commits.outputs.commits }}
+      - name: Check that all commits are signed-off
+        uses: tim-actions/dco@master
+        with:
+          commits: ${{ steps.get-pr-commits.outputs.commits }}
 
   target-branch:
     permissions:
@@ -29,12 +29,12 @@ jobs:
     name: Branch target
     runs-on: ubuntu-24.04
     steps:
-    - name: Check branch target
-      env:
-        TARGET: ${{ github.event.pull_request.base.ref }}
-      run: |
-        set -x
-        [ "${TARGET}" = "main" ] && exit 0
+      - name: Check branch target
+        env:
+          TARGET: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -x
+          [ "${TARGET}" = "main" ] && exit 0
 
-        echo "Invalid branch target: ${TARGET}"
-        exit 1
+          echo "Invalid branch target: ${TARGET}"
+          exit 1
