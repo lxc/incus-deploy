@@ -1,5 +1,5 @@
 ---
-- name: Incus - Add package repository (apt)
+- name: Install and configure Incus and its whole stack
   hosts: all
   collections:
     - lxc.incus
@@ -11,4 +11,12 @@
     - "distribution_release"
   any_errors_fatal: true
   roles:
+    - role: system_settings
+    - role: netplan
+    - role: ntp
+    - role: nvme
+    - role: ceph
+    - role: linstor
+    - role: lvmcluster
+    - role: ovn
     - role: incus
