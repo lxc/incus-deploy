@@ -1,5 +1,18 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
+- name: Set facts from variables for cross host queries
+  ansible.builtin.set_fact:
+    cacheable: true
+    ovn_name: "{{ ovn_name }}"
+    ovn_az_name: "{{ ovn_az_name }}"
+    ovn_roles: "{{ ovn_roles }}"
+
+- name: Set ovn_ip_address fact from variable if exists
+  ansible.builtin.set_fact:
+    cacheable: true
+    ovn_ip_address: "{{ ovn_ip_address }}"
+  when: "ovn_ip_address is defined"
+
 - name: Add keys and certificates generation tasks
   ansible.builtin.import_tasks: certificates.yml
   when: ansible_distribution in ("Ubuntu", "Debian")
