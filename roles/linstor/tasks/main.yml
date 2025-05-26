@@ -1,5 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
+- name: Gather all satellite hosts
+  ansible.builtin.set_fact:
+    cacheable: true
+    linstor_roles: "{{ linstor_roles }}"
+
 - name: Add the Debian repository registration
   ansible.builtin.import_tasks: repo_deb.yml
   when: 'ansible_distribution == "Ubuntu" and ansible_distribution_release != "focal"'
