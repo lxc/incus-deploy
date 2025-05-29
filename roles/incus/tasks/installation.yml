@@ -142,29 +142,40 @@
     and item.value.description | default(None)
   changed_when: true
 
-# yamllint disable rule:line-length
 - name: Add storage pools
-  ansible.builtin.command: "incus storage create {{ item.key }} {{ item.value.driver }}{% for k in item.value.local_config | default([]) %} {{ k }}={{ item.value.local_config[k] }}{% endfor %}{% for k in item.value.config | default([]) %} {{ k }}={{ item.value.config[k] }}{% endfor %}"
+  ansible.builtin.command: >-
+    incus storage create {{ item.key }} {{ item.value.driver }}
+    {% for k in item.value.local_config | default([]) %} {{ k }}={{ item.value.local_config[k] }}{% endfor %}
+    {% for k in item.value.config | default([]) %} {{ k }}={{ item.value.config[k] }}{% endfor %}
   loop: "{{ incus_init['storage'] | dict2items }}"
-  when: '(install_deb.changed or install_rpm.changed) and ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))'
+  when: >
+    (install_deb.changed or install_rpm.changed) and
+    ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))
   changed_when: true
 
 - name: Set storage pool description
   ansible.builtin.command: "incus storage set --property {{ item.key }} description=\"{{ item.value.description }}\""
   loop: "{{ incus_init['storage'] | dict2items }}"
-  when: '(install_deb.changed or install_rpm.changed) and ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname)) and item.value.description | default(None)'
+  when: >
+    (install_deb.changed or install_rpm.changed) and
+    ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname)) and
+    item.value.description | default(None)
   changed_when: true
 
 - name: Add storage pool to default profile
   ansible.builtin.command: "incus profile device add default root disk path=/ pool={{ item }}"
   loop: "{{ incus_init['storage'] | dict2items | json_query('[?value.default].key') }}"
-  when: '(install_deb.changed or install_rpm.changed) and ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))'
+  when: >
+    (install_deb.changed or install_rpm.changed) and
+    ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))
   changed_when: true
 
 - name: Add network to default profile
   ansible.builtin.command: "incus profile device add default eth0 nic network={{ item }} name=eth0"
   loop: "{{ incus_init['network'] | dict2items | json_query('[?value.default].key') }}"
-  when: '(install_deb.changed or install_rpm.changed) and ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))'
+  when: >
+    (install_deb.changed or install_rpm.changed) and
+    ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))
   changed_when: true
 
 - name: Bootstrap the cluster
@@ -196,17 +207,23 @@
         cluster_address: "{{ incus_ip_address_or_default }}"
         cluster_token: "{{ cluster_add.stdout }}"
         server_address: "{{ incus_ip_address_or_default }}"
-        member_config: {% for pool in incus_init.storage %}{% for key in incus_init.storage[pool].local_config | default([]) %}
-
+        member_config:
+        {% for pool in incus_init.storage %}
+        {% for key in incus_init.storage[pool].local_config | default([]) %}
           - entity: storage-pool
             name: {{ pool }}
             key: {{ key }}
-            value: {{ incus_init.storage[pool].local_config[key] }}{% endfor %}{% endfor %}{% for network in incus_init.network %}{% for key in incus_init.network[network].local_config | default([]) %}
-
+            value: {{ incus_init.storage[pool].local_config[key] }}
+        {% endfor %}
+        {% endfor %}
+        {% for network in incus_init.network %}
+        {% for key in incus_init.network[network].local_config | default([]) %}
           - entity: network
             name: {{ network }}
             key: {{ key }}
-            value: {{ incus_init.network[network].local_config[key] }}{% endfor %}{% endfor %}
+            value: {{ incus_init.network[network].local_config[key] }}
+        {% endfor %}
+        {% endfor %}
   when: 'cluster_add.changed'
   tags:
     - skip_ansible_lint
@@ -215,7 +232,9 @@
 - name: Apply additional configuration
   ansible.builtin.command: "incus config set {{ item.key }}=\"{{ item.value }}\""
   loop: "{{ incus_init['config'] | default({}) | dict2items }}"
-  when: '(install_deb.changed or install_rpm.changed) and ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))'
+  when: >
+    (install_deb.changed or install_rpm.changed) and
+    ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))
   changed_when: true
 
 - name: Load client certificates
@@ -223,6 +242,7 @@
     cmd: "incus config trust add-certificate --name \"{{ item.key }}\" --type={{ item.value.type | default('client') }} -"
     stdin: "{{ item.value.certificate }}"
   loop: "{{ incus_init['clients'] | default({}) | dict2items }}"
-  when: '(install_deb.changed or install_rpm.changed) and ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))'
+  when: >
+    (install_deb.changed or install_rpm.changed) and
+    ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))'
   changed_when: true
-# yamllint enable rule:line-length
