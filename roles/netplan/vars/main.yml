@@ -1,0 +1,3 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+netplan_config_dir: "{{ config_root_dir | default('..') }}/data/netplan"

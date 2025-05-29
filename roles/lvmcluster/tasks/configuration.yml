@@ -1,7 +1,7 @@
 - name: Create cluster directory
   delegate_to: 127.0.0.1
   ansible.builtin.file:
-    path: "../data/lvmcluster/{{ lvmcluster_name }}"
+    path: "{{ lvmcluster_config_dir }}/{{ lvmcluster_name }}"
     mode: "0755"
     state: directory
   throttle: 1
@@ -13,7 +13,7 @@
   throttle: 1
   ansible.builtin.copy:
     content: "{}"
-    dest: "../data/lvmcluster/{{ lvmcluster_name }}/host_id.yaml"
+    dest: "{{ lvmcluster_config_dir }}/{{ lvmcluster_name }}/host_id.yaml"
     mode: "0644"
   tags:
     - skip_ansible_lint
@@ -24,8 +24,8 @@
   throttle: 1
   ansible.builtin.template:
     src: host_id.yaml.j2
-    dest: "../data/lvmcluster/{{ lvmcluster_name }}/host_id.yaml"
+    dest: "{{ lvmcluster_config_dir }}/{{ lvmcluster_name }}/host_id.yaml"
     mode: "0644"
   when: 'lvmcluster_name'
   vars:
-    lvmcluster_host_ids: "{{ lookup('file', '../data/lvmcluster/' + lvmcluster_name + '/host_id.yaml') | from_yaml }}"
+    lvmcluster_host_ids: "{{ lookup('file', lvmcluster_config_dir + '/' + lvmcluster_name + '/host_id.yaml') | from_yaml }}"
