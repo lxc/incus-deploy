@@ -21,7 +21,7 @@
     satellites_without_storage_pools: >-
       {{
         satellite_hosts | difference(
-          storage_pool_output.stdout | from_json | json_query('[0][?linstor_pool_driver!=`DISKLESS`].node_name') | unique
+          storage_pool_output.stdout | from_json | json_query('[0][?provider_kind!=`DISKLESS`].node_name') | unique
         )
       }}
   changed_when: false
