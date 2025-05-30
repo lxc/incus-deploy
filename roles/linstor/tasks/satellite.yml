@@ -15,6 +15,6 @@
     {{ hostvars[item].ansible_facts.default_ipv6.address | default(hostvars[item].ansible_facts.default_ipv4.address) }}
     --node-type satellite
   register: create_node_output
-  loop: "{{ groups['all'] }}"
-  when: '("controller" in linstor_roles) and ("satellite" in hostvars[item]["linstor_roles"]) and (item not in existing_satellite_nodes)'
+  loop: "{{ ansible_play_hosts }}"
+  when: '("controller" in linstor_roles) and ("satellite" in hostvars[item]["ansible_facts"]["linstor_roles"]) and (item not in existing_satellite_nodes)'
   changed_when: "create_node_output.rc == 0"

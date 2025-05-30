@@ -1,6 +1,6 @@
 {%- set found = namespace(count=0) %}
-{%- for host in vars['ansible_play_hosts'] %}
-{% if 'ceph_fsid' in hostvars[host] and hostvars[host]['ceph_fsid'] == ceph_fsid and 'ceph_roles' in hostvars[host] and "mon" in hostvars[host]['ceph_roles'] %}
+{%- for host in vars['ansible_play_hosts'] | sort %}
+{% if 'ceph_fsid' in hostvars[host]['ansible_facts'] and hostvars[host]['ansible_facts']['ceph_fsid'] == ceph_fsid and 'ceph_roles' in hostvars[host]['ansible_facts'] and "mon" in hostvars[host]['ansible_facts']['ceph_roles'] %}
 {% set found.count = found.count + 1 %}
 - "{{ host }}"
 {% endif %}

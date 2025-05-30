@@ -1,5 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
+- name: Set facts from variables for cross host queries
+  ansible.builtin.set_fact:
+    cacheable: true
+    ceph_fsid: "{{ ceph_fsid }}"
+    ceph_roles: "{{ ceph_roles }}"
+
+- name: Set facts ceph_ip_address from variables if exists
+  ansible.builtin.set_fact:
+    cacheable: true
+    ceph_ip_address: "{{ ceph_ip_address }}"
+  when: "ceph_ip_address is defined"
+
 - name: Install debian repository
   ansible.builtin.import_tasks: repo_deb.yml
   when: 'ansible_distribution in ("Ubuntu", "Debian")'
