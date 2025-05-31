@@ -68,6 +68,7 @@ all:
               driver: linstor
               local_config:
                 source: "{{ linstor_pool_name }}"
+              controller_connection: http://server01:3370
               description: Linstor storage pool (cluster-wide)
             shared:
               driver: lvmcluster
