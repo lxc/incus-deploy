@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Manage configuration handlers
+  ansible.builtin.import_tasks: configuration.yml
+
+- name: Manage volume groups handlers
+  ansible.builtin.import_tasks: volumegroups.yml

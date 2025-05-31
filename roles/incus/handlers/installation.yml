@@ -1,5 +1,53 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
+- name: Wait 5s to avoid token use before valid
+  ansible.builtin.wait_for:
+    timeout: 5
+  delegate_to: localhost
+  changed_when: false
+
+- name: Join the cluster
+  throttle: 1
+  ansible.builtin.command:
+    cmd: "incus --force-local admin init --preseed"
+    stdin: |-
+      cluster:
+        enabled: true
+        cluster_address: "{{ incus_ip_address_or_default }}"
+        cluster_token: "{{ cluster_add.stdout }}"
+        server_address: "{{ incus_ip_address_or_default }}"
+        member_config:{%- for pool in incus_init.storage %}
+      {%- for key in incus_init.storage[pool].local_config | default([]) %}
+
+          - entity: storage-pool
+            name: {{ pool }}
+            key: {{ key }}
+            value: {{ incus_init.storage[pool].local_config[key] }}
+      {%- endfor %}
+      {%- endfor %}
+      {%- for network in incus_init.network %}
+      {%- for key in incus_init.network[network].local_config | default([]) %}
+
+          - entity: network
+            name: {{ network }}
+            key: {{ key }}
+            value: {{ incus_init.network[network].local_config[key] }}
+      {%- endfor %}
+      {%- endfor %}
+  changed_when: true
+
+- name: Apply additional configuration
+  ansible.builtin.command: "incus config set {{ item.key }}=\"{{ item.value }}\""
+  loop: "{{ incus_init['config'] | default({}) | dict2items }}"
+  changed_when: true
+
+- name: Load client certificates
+  ansible.builtin.command:
+    cmd: "incus config trust add-certificate --name \"{{ item.key }}\" --type={{ item.value.type | default('client') }} -"
+    stdin: "{{ item.value.certificate }}"
+  loop: "{{ incus_init['clients'] | default({}) | dict2items }}"
+  changed_when: true
+
 - name: Restart Incus
   ansible.builtin.systemd:
     name: incus.service
