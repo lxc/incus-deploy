@@ -83,8 +83,8 @@ jobs:
             sed -i -e '/linstor:/,+4d' hosts.yaml
           fi
 
-          if [ "${{ matrix.os }}" = "ubuntu/20.04" ]; then
-            # Ubuntu 20.04's OVN is too old.
+          if [ "${{ matrix.os }}" = "ubuntu/20.04" ] || [ "${{ matrix.os }}" = "ubuntu/22.04" ]; then
+            # Ubuntu 20.04 and 22.04's OVN are too old.
             sed -i "s/ovn_release:.*/ovn_release: \"ppa\"/g" hosts.yaml
           elif [ "${{ matrix.os }}" = "debian/12" ]; then
             # ZFS on Debian needs compiling which is slow, use btrfs instead
