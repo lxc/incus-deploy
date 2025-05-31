@@ -80,7 +80,7 @@ jobs:
 
           if [ "${{ matrix.os }}" != "ubuntu/22.04" ] && [ "${{ matrix.os }}" != "ubuntu/24.04" ]; then
             # Linstor is only available on jammy and noble.
-            sed -i -e '/linstor:/,+4d' hosts.yaml
+            sed -i -e '/linstor:/,+5d' hosts.yaml
           fi
 
           if [ "${{ matrix.os }}" = "ubuntu/20.04" ] || [ "${{ matrix.os }}" = "ubuntu/22.04" ]; then
