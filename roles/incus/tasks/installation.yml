@@ -186,6 +186,18 @@
   when: '(install_deb.changed or install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] != inventory_hostname'
   changed_when: false
 
+- name: Set linstor controller_connection property
+  ansible.builtin.command: >-
+    incus --force-local config
+    set storage.linstor.controller_connection=http://{{ item }}:3370
+  loop: "{{ ansible_play_hosts }}"
+  register: register_linstor_controller
+  when: >-
+    "controller" in hostvars[item]["ansible_facts"]["linstor_roles"] and
+    ansible_distribution == "Ubuntu" and
+    ansible_distribution_release != "focal"
+  changed_when: "register_linstor_controller.rc == 0"
+
 - name: Join the cluster
   throttle: 1
   ansible.builtin.command:
