@@ -1,0 +1,3 @@
+- name: Ensure lock manager is running
+  ansible.builtin.command: "vgchange --lock-start"
+  changed_when: true
