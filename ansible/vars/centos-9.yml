@@ -1,0 +1,81 @@
+# Global variables
+config_root_dir: "{{ '.' | ansible.builtin.realpath }}"
+ceph_fsid: "e2850e1f-7aab-472e-b6b1-824e19a75071"
+ceph_rbd_cache: "2048Mi"
+ceph_rbd_cache_max: "1792Mi"
+ceph_rbd_cache_target: "1536Mi"
+ceph_release: "squid"
+incus_name: "baremetal"
+incus_release: "stable"
+lvmcluster_name: "baremetal"
+incus_init:
+  network:
+    LOCAL:
+      type: macvlan
+      local_config:
+        parent: enp5s0
+      default: true
+      description: Directly attach to host networking
+  storage:
+    local:
+      driver: lvm
+      local_config:
+        lvm.vg_name: "local"
+        source: "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_disk3"
+      description: Local storage pool
+    remote:
+      driver: ceph
+      local_config:
+        source: "incus_{{ incus_name }}"
+      description: Distributed storage pool (cluster-wide)
+    shared:
+      driver: lvmcluster
+      local_config:
+        lvm.vg_name: "vg0"
+        source: "vg0"
+      default: true
+      description: Shared storage pool (cluster-wide)
+incus_roles:
+  - cluster
+  - ui
+lvmcluster_metadata_size: 100m
+lvmcluster_vgs:
+  vg0: "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_disk4"
+
+# Define node-specific variables
+nodes:
+  default:
+    ceph_disks:
+      - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+      - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+    ceph_roles:
+      - client
+      - osd
+      - rgw
+  server01:
+    ceph_roles:
+      - client
+      - mon
+      - mds
+      - mgr
+      - osd
+  server02:
+    ceph_roles:
+      - client
+      - mon
+      - mds
+      - mgr
+      - osd
+  server03:
+    ceph_roles:
+      - client
+      - mon
+      - mds
+      - mgr
+      - osd
+  server04:
+  server05:
+
+# Compute node-specific variables
+ceph_disks: "{{ nodes[inventory_hostname]['ceph_disks'] | default(nodes['default']['ceph_disks'] | default([])) }}"
+ceph_roles: "{{ nodes[inventory_hostname]['ceph_roles'] | default(nodes['default']['ceph_roles'] | default([])) }}"

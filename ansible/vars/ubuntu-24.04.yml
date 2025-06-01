@@ -1,0 +1,132 @@
+# Global variables
+config_root_dir: "{{ '.' | ansible.builtin.realpath }}"
+ceph_fsid: "e2850e1f-7aab-472e-b6b1-824e19a75071"
+ceph_rbd_cache: "2048Mi"
+ceph_rbd_cache_max: "1792Mi"
+ceph_rbd_cache_target: "1536Mi"
+ceph_release: "distro"
+incus_name: "baremetal"
+incus_release: "stable"
+linstor_pool_name: "incus"
+linstor_pool_driver: "lvmthin"
+lvmcluster_name: "baremetal"
+ovn_name: "baremetal"
+ovn_az_name: "zone1"
+ovn_release: "distro"
+incus_init:
+  network:
+    LOCAL:
+      type: macvlan
+      local_config:
+        parent: enp5s0
+      description: Directly attach to host networking
+    UPLINK:
+      type: physical
+      config:
+        ipv4.gateway: "172.31.254.1/24"
+        ipv6.gateway: "fd00:1e4d:637d:1234::1/64"
+        ipv4.ovn.ranges: "172.31.254.10-172.31.254.254"
+        dns.nameservers: "1.1.1.1,1.0.0.1"
+      local_config:
+        parent: enp6s0
+      description: Physical network for OVN routers
+    default:
+      type: ovn
+      config:
+        network: UPLINK
+      default: true
+      description: Initial OVN network
+  storage:
+    local:
+      driver: zfs
+      local_config:
+        source: "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_disk3"
+      description: Local storage pool
+    remote:
+      driver: ceph
+      local_config:
+        source: "incus_{{ incus_name }}"
+      description: Distributed storage pool (cluster-wide)
+    linstor:
+      driver: linstor
+      local_config:
+        source: "{{ linstor_pool_name }}"
+      description: Linstor storage pool (cluster-wide)
+    shared:
+      driver: lvmcluster
+      local_config:
+        lvm.vg_name: "vg0"
+        source: "vg0"
+      default: true
+      description: Shared storage pool (cluster-wide)
+incus_roles:
+  - cluster
+  - ui
+lvmcluster_metadata_size: 100m
+lvmcluster_vgs:
+  vg0: "/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_disk4"
+
+# Define node-specific variables
+nodes:
+  default:
+    ceph_disks:
+      - data: nvme-QEMU_NVMe_Ctrl_incus_disk1
+      - data: nvme-QEMU_NVMe_Ctrl_incus_disk2
+    ceph_roles:
+      - client
+      - osd
+      - rgw
+    ovn_roles:
+      - host
+    linstor_roles:
+      - satellite
+    linstor_disks:
+      - nvme-QEMU_NVMe_Ctrl_incus_disk5
+  server01:
+    ceph_roles:
+      - client
+      - mon
+      - mds
+      - mgr
+      - osd
+    ovn_roles:
+      - central
+      - host
+    linstor_roles:
+      - controller
+      - satellite
+  server02:
+    ceph_roles:
+      - client
+      - mon
+      - mds
+      - mgr
+      - osd
+    ovn_roles:
+      - central
+      - host
+  server03:
+    ceph_roles:
+      - client
+      - mon
+      - mds
+      - mgr
+      - osd
+    ovn_roles:
+      - central
+      - host
+  server04:
+  server05:
+    iscsi_target_roles:
+      - target
+    iscsi_target_disks:
+      - nvme-QEMU_NVMe_Ctrl_incus_disk6
+
+# Compute node-specific variables
+ceph_disks: "{{ nodes[inventory_hostname]['ceph_disks'] | default(nodes['default']['ceph_disks'] | default([])) }}"
+ceph_roles: "{{ nodes[inventory_hostname]['ceph_roles'] | default(nodes['default']['ceph_roles'] | default([])) }}"
+ovn_roles: "{{ nodes[inventory_hostname]['ovn_roles'] | default(nodes['default']['ovn_roles'] | default([])) }}"
+linstor_roles: "{{ nodes[inventory_hostname]['linstor_roles'] | default(nodes['default']['linstor_roles'] | default([])) }}"
+linstor_disks: "{{ nodes[inventory_hostname]['linstor_disks'] | default(nodes['default']['linstor_disks'] | default([])) }}"
+iscsi_target_roles: "{{ nodes[inventory_hostname]['iscsi_target_roles'] | default(nodes['default']['iscsi_target_roles'] | default([])) }}"
+iscsi_target_disks: "{{ nodes[inventory_hostname]['iscsi_target_disks'] | default(nodes['default']['iscsi_target_disks'] | default([])) }}"
