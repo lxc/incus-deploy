@@ -18,6 +18,7 @@
     - role: netplan
     - role: ntp
     - role: nvme
+    - role: iscsi_target
     - role: ceph
     - role: linstor
     - role: lvmcluster

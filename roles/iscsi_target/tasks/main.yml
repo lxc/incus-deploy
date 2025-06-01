@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Install and configure an iscsi target
+  ansible.builtin.import_tasks: "target.yml"
+  when: >-
+    ansible_distribution in ("Debian", "Ubuntu") and
+    "target" in iscsi_target_roles
+
+- name: Install and configure an iscsi initiator
+  ansible.builtin.import_tasks: "initiator.yml"
+  when: >-
+    ansible_distribution in ("Debian", "Ubuntu") and
+    "target" in iscsi_target_roles

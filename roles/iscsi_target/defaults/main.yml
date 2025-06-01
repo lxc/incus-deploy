@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+iscsi_target_roles: []
+iscsi_target_disks: []

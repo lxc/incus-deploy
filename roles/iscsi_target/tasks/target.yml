@@ -1,0 +1,114 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Install the iscsi target package
+  ansible.builtin.apt:
+    name:
+      - targetcli-fb
+    state: present
+
+- name: Enable daemons
+  ansible.builtin.systemd:
+    enabled: true
+    name: targetclid
+    state: started
+
+- name: Run the iscsi targetcli help
+  ansible.builtin.command: "targetcli --help"
+  register: targetcli_help
+  changed_when: "targetcli_help.rc == 0"
+  failed_when: "targetcli_help.rc not in (0, 255)"
+
+- name: Display the iscsi targetcli help
+  ansible.builtin.debug:
+    msg: "{{ targetcli_help.stderr_lines }}"
+
+- name: Create an iscsi block storage
+  ansible.builtin.command: >-
+    targetcli "/backstores/block create lun01 /dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_disk6"
+  register: targetcli_create_block
+  changed_when: "targetcli_create_block.rc == 0"
+  failed_when: false
+
+- name: Display iscsi block storage creation
+  ansible.builtin.debug:
+    msg: "{{ targetcli_create_block }}"
+  failed_when: "targetcli_create_block.rc != 0"
+
+- name: Create an iscsi iqn target
+  ansible.builtin.command: >-
+    targetcli "/iscsi create iqn.2025-06.org.linuxcontainers:target"
+  register: targetcli_create_iqn
+  changed_when: "targetcli_create_iqn.rc == 0"
+  failed_when: false
+
+- name: Display iscsi block storage creation
+  ansible.builtin.debug:
+    msg: "{{ targetcli_create_iqn }}"
+  failed_when: "targetcli_create_iqn.rc != 0"
+
+- name: Map luns in the target portal group with block device
+  ansible.builtin.command: >-
+    targetcli "/iscsi/iqn.2025-06.org.linuxcontainers:target/tpg1/luns create /backstores/block/lun01"
+  register: targetcli_create_lun_in_tpg
+  changed_when: "targetcli_create_lun_in_tpg.rc == 0"
+  failed_when: false
+
+- name: Display lun target portal group with block device mapping
+  ansible.builtin.debug:
+    msg: "{{ targetcli_create_lun_in_tpg }}"
+  failed_when: "targetcli_create_lun_in_tpg.rc != 0"
+
+- name: Add initiator to the target portal group acls
+  ansible.builtin.command: >-
+    targetcli "/iscsi/iqn.2025-06.org.linuxcontainers:target/tpg1/acls create iqn.2025-06.org.linuxcontainers:initiator"
+  register: targetcli_create_initiator
+  changed_when: "targetcli_create_initiator.rc == 0"
+  failed_when: false
+
+- name: Display the initiator creation
+  ansible.builtin.debug:
+    msg: "{{ targetcli_create_initiator }}"
+  failed_when: "targetcli_create_initiator.rc != 0"
+
+- name: Set a userid for the initiator
+  ansible.builtin.command: >-
+    targetcli "/iscsi/iqn.2025-06.org.linuxcontainers:target/tpg1/acls/iqn.2025-06.org.linuxcontainers:initiator set auth userid=username"
+  register: targetcli_set_userid
+  changed_when: "targetcli_set_userid.rc == 0"
+  failed_when: false
+
+- name: Display the userid addition
+  ansible.builtin.debug:
+    msg: "{{ targetcli_set_userid }}"
+  failed_when: "targetcli_set_userid.rc != 0"
+
+- name: Set a password for the initiator
+  ansible.builtin.command: >-
+    targetcli "/iscsi/iqn.2025-06.org.linuxcontainers:target/tpg1/acls/iqn.2025-06.org.linuxcontainers:initiator set auth password=password"
+  register: targetcli_set_password
+  changed_when: "targetcli_set_password.rc == 0"
+  failed_when: false
+
+- name: Display the password addition
+  ansible.builtin.debug:
+    msg: "{{ targetcli_set_password }}"
+  failed_when: "targetcli_set_password.rc != 0"
+
+- name: Enable daemons
+  ansible.builtin.systemd:
+    enabled: true
+    name: target
+    state: started
+  when: >-
+    ansible_distribution_version != "20.04"
+
+- name: Check process listening on port 3260
+  ansible.builtin.command: >-
+    ss -tp state listening sport = :3260
+  register: targetcli_listening_process
+  changed_when: false
+  failed_when: "targetcli_listening_process.rc != 0"
+
+- name: Display process listening on
+  ansible.builtin.debug:
+    msg: "{{ targetcli_listening_process }}"

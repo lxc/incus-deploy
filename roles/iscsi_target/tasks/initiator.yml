@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+# https://docs.ansible.com/ansible/latest/collections/community/general/open_iscsi_module.html
+# https://www.netexpertise.eu/fr/systeme/linux/disques-san-iscsi-multipath-linux.html
+
+- name: Install the iscsi tools and libraries
+  ansible.builtin.apt:
+    name:
+      - open-iscsi
+    state: present
+
+- name: Enable daemon
+  ansible.builtin.systemd:
+    enabled: true
+    name: open-iscsi
+    state: started
+
+- name: Discover targets on portal and login to the ones available
+  community.general.open_iscsi:
+    portal: server05
+    login: true
+    node_auth: CHAP
+    node_user: username
+    node_pass: password
+    target: iqn.2025-06.org.linuxcontainers:target
+  register: open_iscsi_output
+
+- name: Display the password addition
+  ansible.builtin.debug:
+    msg: "{{ open_iscsi_output }}"

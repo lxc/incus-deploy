@@ -168,6 +168,11 @@ all:
             - osd
             - rgw
 
+          iscsi_target_roles:
+            - target
+          iscsi_target_disks:
+            - nvme-QEMU_NVMe_Ctrl_incus_disk6
+
           linstor_roles:
             - satellite
           linstor_disks:
