@@ -3,6 +3,9 @@
 - name: Configure the cluster
   ansible.builtin.import_tasks: configuration.yml
 
+- name: Flush the handlers
+  ansible.builtin.meta: flush_handlers
+
 - name: Add the packages
   ansible.builtin.import_tasks: packages.yml
 

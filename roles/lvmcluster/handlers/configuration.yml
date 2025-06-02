@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Create cluster host_id tracking
+  delegate_to: 127.0.0.1
+  throttle: 1
+  ansible.builtin.copy:
+    content: "{}"
+    dest: "{{ lvmcluster_config_dir }}/{{ lvmcluster_name }}/host_id.yaml"
+    mode: "0644"
+  notify: Update cluster host_id tracking
+
+- name: Update cluster host_id tracking
+  delegate_to: 127.0.0.1
+  throttle: 1
+  ansible.builtin.template:
+    src: host_id.yaml.j2
+    dest: "{{ lvmcluster_config_dir }}/{{ lvmcluster_name }}/host_id.yaml"
+    mode: "0644"
+  vars:
+    lvmcluster_host_ids: "{{ lookup('file', lvmcluster_config_dir + '/' + lvmcluster_name + '/host_id.yaml') | from_yaml }}"
