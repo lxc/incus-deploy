@@ -98,6 +98,9 @@
   when: >-
     (install_deb.changed or install_rpm.changed) and
     ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))
+  notify:
+    - "Apply additional configuration"
+    - "Load client certificates"
   changed_when: true
 
 - name: Set cluster listen address
@@ -109,16 +112,14 @@
   ansible.builtin.command: >-
     incus --force-local config
     set network.ovn.northbound_connection={{ incus_ovn_northbound }}
-    network.ovn.client_cert="{{ lookup('file', ovn_config_dir+'/'+inventory_hostname+'.crt') }}"
-    network.ovn.client_key="{{ lookup('file', ovn_config_dir+'/'+inventory_hostname+'.key') }}"
-    network.ovn.ca_cert="{{ lookup('file', ovn_config_dir+'/ca.crt') }}"
+    network.ovn.client_cert="{{ lookup('file', ovn_config_dir + '/' + inventory_hostname + '.crt') }}"
+    network.ovn.client_key="{{ lookup('file', ovn_config_dir + '/' + inventory_hostname + '.key') }}"
+    network.ovn.ca_cert="{{ lookup('file', ovn_config_dir + '/ca.crt') }}"
   notify: Restart Incus
   when: >-
     (install_deb.changed or install_rpm.changed) and
     incus_ovn_northbound and
     ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))
-  tags:
-    - skip_ansible_lint
   changed_when: true
 
 - name: Add networks
@@ -178,25 +179,6 @@
     ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))
   changed_when: true
 
-- name: Bootstrap the cluster
-  ansible.builtin.command: "incus --force-local cluster enable {{ inventory_hostname }}"
-  when: '(install_deb.changed or install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] == inventory_hostname'
-  changed_when: true
-
-- name: Create join tokens
-  delegate_to: "{{ incus_servers[0] }}"
-  ansible.builtin.command: "incus --force-local --quiet cluster add {{ inventory_hostname }}"
-  register: cluster_add
-  when: '(install_deb.changed or install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] != inventory_hostname'
-  changed_when: true
-
-- name: Wait 5s to avoid token use before valid
-  ansible.builtin.wait_for:
-    timeout: 5
-  delegate_to: localhost
-  when: '(install_deb.changed or install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] != inventory_hostname'
-  changed_when: false
-
 - name: Set linstor controller_connection property
   ansible.builtin.command: >-
     incus --force-local config
@@ -209,54 +191,17 @@
     ansible_distribution_release != "focal"
   changed_when: "register_linstor_controller.rc == 0"
 
-- name: Join the cluster
-  throttle: 1
-  ansible.builtin.command:
-    cmd: "incus --force-local admin init --preseed"
-    stdin: |-
-      cluster:
-        enabled: true
-        cluster_address: "{{ incus_ip_address_or_default }}"
-        cluster_token: "{{ cluster_add.stdout }}"
-        server_address: "{{ incus_ip_address_or_default }}"
-        member_config:
-        {%- for pool in incus_init.storage %}
-        {%- for key in incus_init.storage[pool].local_config | default([]) %}
-
-          - entity: storage-pool
-            name: {{ pool }}
-            key: {{ key }}
-            value: {{ incus_init.storage[pool].local_config[key] }}
-        {%- endfor %}
-        {%- endfor %}
-        {%- for network in incus_init.network %}
-        {%- for key in incus_init.network[network].local_config | default([]) %}
-
-          - entity: network
-            name: {{ network }}
-            key: {{ key }}
-            value: {{ incus_init.network[network].local_config[key] }}
-        {%- endfor %}
-        {%- endfor %}
-  when: 'cluster_add.changed'
-  tags:
-    - skip_ansible_lint
+- name: Bootstrap the cluster
+  ansible.builtin.command: "incus --force-local cluster enable {{ inventory_hostname }}"
+  when: '(install_deb.changed or install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] == inventory_hostname'
   changed_when: true
 
-- name: Apply additional configuration
-  ansible.builtin.command: "incus config set {{ item.key }}=\"{{ item.value }}\""
-  loop: "{{ incus_init['config'] | default({}) | dict2items }}"
-  when: >
-    (install_deb.changed or install_rpm.changed) and
-    ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))
-  changed_when: true
-
-- name: Load client certificates
-  ansible.builtin.command:
-    cmd: "incus config trust add-certificate --name \"{{ item.key }}\" --type={{ item.value.type | default('client') }} -"
-    stdin: "{{ item.value.certificate }}"
-  loop: "{{ incus_init['clients'] | default({}) | dict2items }}"
-  when: >
-    (install_deb.changed or install_rpm.changed) and
-    ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))'
+- name: Create join tokens
+  delegate_to: "{{ incus_servers[0] }}"
+  ansible.builtin.command: "incus --force-local --quiet cluster add {{ inventory_hostname }}"
+  register: cluster_add
+  notify:
+    - Wait 5s to avoid token use before valid
+    - Join the cluster
+  when: '(install_deb.changed or install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] != inventory_hostname'
   changed_when: true
