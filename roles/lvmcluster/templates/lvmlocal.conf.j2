@@ -6,9 +6,11 @@ global {
 	use_lvmlockd = 1
 }
 
+{%- if ansible_distribution in ("CentOS", "Debian", "Ubuntu") and ansible_distribution_release not in ("jammy", "focal") %}
 devices {
 	use_devicesfile = 0
 }
+{%- endif %}
 
 local {
 	host_id = {{ lvmcluster_host_ids[inventory_hostname] }}
