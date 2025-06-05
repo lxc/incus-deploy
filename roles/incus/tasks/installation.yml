@@ -46,6 +46,26 @@
     state: present
   when: "incus_roles | length > 0 and 'lvm' in incus_init['storage'] | dict2items | json_query('[].value.driver')"
 
+- name: List installed kernel images
+  ansible.builtin.command: >-
+    apt list linux-image-* --installed
+  register: linux_image_version
+  changed_when: false
+  failed_when: "linux_image_version.rc != 0"
+  when: >-
+    incus_roles | length > 0 and 'zfs' in incus_init['storage'] |
+    dict2items | json_query('[].value.driver') and ansible_distribution == 'Debian'
+
+- name: Install linux image headers
+  ansible.builtin.apt:
+    name:
+      - linux-headers-{{ item | regex_replace('^linux-image-(.*)/.*$', '\1') }}
+    state: present
+  loop: "{{ linux_image_version.stdout_lines | default([]) | select('search', 'linux-image-[0-9]+.*/.*') }}"
+  when: >-
+    incus_roles | length > 0 and 'zfs' in incus_init['storage'] |
+    dict2items | json_query('[].value.driver') and ansible_distribution == 'Debian'
+
 - name: Install ZFS dependencies
   ansible.builtin.package:
     name:
