@@ -14,5 +14,5 @@ jobs:
       - name: Run ansible-lint
         uses: ansible/ansible-lint@main
         with:
-          args: "roles/*"
+          args: roles/* ansible/*
           setup_python: "true"

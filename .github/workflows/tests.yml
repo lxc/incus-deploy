@@ -76,7 +76,7 @@ jobs:
             cp hosts.yaml.example hosts.yaml
           fi
 
-          ansible-playbook tasks/update-packages.yaml
+          ansible-playbook books/update-packages.yaml
 
           if [ "${{ matrix.os }}" != "ubuntu/22.04" ] && [ "${{ matrix.os }}" != "ubuntu/24.04" ]; then
             # Linstor is only available on jammy and noble.

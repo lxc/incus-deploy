@@ -1,34 +1,34 @@
 - name: Apply all updates
   hosts: all
-  gather_facts: yes
+  gather_facts: true
   gather_subset:
     - "distribution_release"
   order: shuffle
   any_errors_fatal: true
   tasks:
     - name: Check if distribution is supported
-      meta: end_play
+      ansible.builtin.meta: end_play
       when: 'ansible_distribution not in ("Ubuntu", "Debian")'
 
     - name: Update apt repo and cache on all Debian/Ubuntu boxes
-      apt:
-        force_apt_get: yes
-        update_cache: yes
+      ansible.builtin.apt:
+        force_apt_get: true
+        update_cache: true
         cache_valid_time: 1800
 
     - name: Upgrade all packages on servers
-      apt:
-        force_apt_get: yes
+      ansible.builtin.apt:
+        force_apt_get: true
         upgrade: dist
-        purge: yes
+        purge: true
 
     - name: Clean unused packages
-      apt:
-        force_apt_get: yes
-        autoremove: yes
-        purge: yes
+      ansible.builtin.apt:
+        force_apt_get: true
+        autoremove: true
+        purge: true
 
     - name: Clean leftover packages
-      apt:
-        force_apt_get: yes
-        autoclean: yes
+      ansible.builtin.apt:
+        force_apt_get: true
+        autoclean: true
