@@ -1,6 +1,22 @@
 - name: Run early playbook before incus installation
   import_playbook: books/local.early.yaml
 
+- name: Set variables from configuration files
+  hosts: all
+  gather_facts: true
+  gather_subset:
+    - "distribution_release"
+  tasks:
+    - name: Load variables from distribution file
+      ansible.builtin.include_vars: "{{ item }}"
+      with_first_found:
+        - paths:
+            - vars
+        - files:
+            - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}.yml"
+            - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}.yml"
+            - "{{ ansible_distribution | lower }}.yml"
+
 - name: Install and configure Incus and its whole stack
   hosts: all
   order: shuffle
@@ -10,8 +26,6 @@
     - "default_ipv6"
     - "distribution_release"
   any_errors_fatal: true
-  vars:
-    config_root_dir: "{{ '.' | ansible.builtin.realpath }}"
   roles:
     - role: lxc.incus.system_settings
     - role: lxc.incus.netplan
