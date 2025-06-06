@@ -1,27 +1,30 @@
-- import_playbook: books/local.early.yaml
+- name: Run early playbook before incus installation
+  import_playbook: books/local.early.yaml
 
 - name: Install and configure Incus and its whole stack
   hosts: all
-  collections:
-    - lxc.incus
   order: shuffle
-  gather_facts: yes
+  gather_facts: true
   gather_subset:
     - "default_ipv4"
     - "default_ipv6"
     - "distribution_release"
   any_errors_fatal: true
   vars:
-    config_root_dir: "{{ '.' | ansible.builtin.realpath }}" 
+    config_root_dir: "{{ '.' | ansible.builtin.realpath }}"
   roles:
-    - role: system_settings
-    - role: netplan
-    - role: ntp
-    - role: nvme
-    - role: ceph
-    - role: linstor
-    - role: lvmcluster
-    - role: ovn
-    - role: incus
+    - role: lxc.incus.system_settings
+    - role: lxc.incus.netplan
+      when: ansible_distribution in ("Ubuntu", "Debian")
+    - role: lxc.incus.ntp
+    - role: lxc.incus.nvme
+    - role: lxc.incus.ceph
+    - role: lxc.incus.linstor
+      when: ansible_distribution == "Ubuntu" and ansible_distribution_version in ("22.04", "24.04")
+    - role: lxc.incus.lvmcluster
+    - role: lxc.incus.ovn
+      when: ansible_distribution in ("Ubuntu", "Debian")
+    - role: lxc.incus.incus
 
-- import_playbook: books/local.late.yaml
+- name: Run late playbook after incus installation
+  import_playbook: books/local.late.yaml
