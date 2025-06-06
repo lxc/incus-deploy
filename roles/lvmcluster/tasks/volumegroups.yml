@@ -17,7 +17,5 @@
 - name: Ensure lock manager is running
   ansible.builtin.command: "vgchange --lock-start"
   register: vgchange
-  when: "create.changed"
-  tags:
-    - skip_ansible_lint
   changed_when: "vgchange.rc == 0"
+  when: 'lvmcluster_name'
