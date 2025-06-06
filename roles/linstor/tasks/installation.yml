@@ -1,5 +1,21 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
+- name: List installed linux images
+  ansible.builtin.command: >-
+    apt list linux-image-* --installed
+  register: linux_image_version
+  changed_when: false
+  failed_when: "linux_image_version.rc != 0"
+  when: '"satellite" in linstor_roles'
+
+- name: Install linux image headers
+  ansible.builtin.apt:
+    name:
+      - linux-headers-{{ item | regex_replace('^linux-image-(.*)/.*$', '\1') }}
+    state: present
+  loop: "{{ linux_image_version.stdout_lines | default([]) | select('search', 'linux-image-[0-9]+.*/.*') }}"
+  when: '"satellite" in linstor_roles'
+
 - name: Install linstor-satellite
   ansible.builtin.apt:
     name:
