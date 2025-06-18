@@ -1,5 +1,10 @@
-{% for host in vars['ansible_play_hosts'] | sort %}
-{% if hostvars[host]['incus_name'] == incus_name and "cluster" in hostvars[host]['incus_roles'] %}
+{%- set found = namespace(count=0) %}
+{% for host in ansible_play_hosts | sort %}
+{% if hostvars[host]['incus_name'] | default('') == incus_name and "cluster" in hostvars[host]['incus_roles'] %}
+{% set found.count = found.count + 1 %}
 - {{ host }}
 {% endif %}
 {% endfor %}
+{%- if found.count == 0 %}
+[]
+{%- endif %}

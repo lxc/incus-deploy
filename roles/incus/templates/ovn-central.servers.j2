@@ -1,4 +1,4 @@
-{% for host in vars['ansible_play_hosts'] | sort %}
+{% for host in ansible_play_hosts | sort %}
 {% if hostvars[host]['ansible_facts']['ovn_name'] | default('') == ovn_name | default('') and hostvars[host]['ansible_facts']['ovn_az_name'] | default('') == ovn_az_name | default('') and "central" in hostvars[host]['ansible_facts']['ovn_roles'] | default([]) %}
 - "{{ hostvars[host]['ansible_facts']['ovn_ip_address'] | default(hostvars[host]['ansible_default_ipv6']['address'] | default(hostvars[host]['ansible_default_ipv4']['address'])) }}"
 {% endif %}
