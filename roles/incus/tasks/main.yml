@@ -1,5 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
+- name: Set facts from variables for incus host queries
+  ansible.builtin.set_fact:
+    cacheable: true
+    incus_name: "{{ incus_name }}"
+    incus_roles: "{{ incus_roles }}"
+
 - name: Add the Debian repository registration
   ansible.builtin.import_tasks: "repo_deb.yml"
   when: 'ansible_distribution in ("Ubuntu", "Debian")'
