@@ -15,6 +15,7 @@ ceph_release_majors:
 ceph_keyrings: ['admin']
 ceph_network_public: ''
 ceph_network_private: ''
+ceph_ip_address: ''
 ceph_rbd_cache: "128Mi"
 ceph_rbd_cache_max: "96Mi"
 ceph_rbd_cache_target: "64Mi"
