@@ -10,6 +10,7 @@
 - name: Install ceph-mon
   ansible.builtin.package:
     name:
+      - ceph-base
       - ceph-mon
     state: present
   when: '"mon" in ceph_roles'
