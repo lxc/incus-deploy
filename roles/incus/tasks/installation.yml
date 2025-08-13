@@ -160,7 +160,7 @@
   when: >-
     (install_deb.changed or install_rpm.changed) and
     ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))
-    and item.value.description | default(None)
+    and item.value.description is defined | default(None)
   changed_when: true
 
 - name: Add storage pools
@@ -180,7 +180,7 @@
   when: >
     (install_deb.changed or install_rpm.changed) and
     ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname)) and
-    item.value.description | default(None)
+    item.value.description is defined | default(None)
   changed_when: true
 
 - name: Add storage pool to default profile

@@ -28,44 +28,44 @@
 
 - name: Create cluster keys
   ansible.builtin.import_tasks: create_keys.yml
-  when: "ceph_fsid and lookup('template', 'ceph.monitors.names.j2') | from_yaml | sort | first == inventory_hostname"
+  when: "ceph_fsid is defined and lookup('template', 'ceph.monitors.names.j2') | from_yaml | sort | first == inventory_hostname"
 
 - name: Force handler execution
   ansible.builtin.meta: flush_handlers
-  when: "ceph_fsid"
+  when: "ceph_fsid is defined"
 
 - name: Deploy cluster keys
   ansible.builtin.import_tasks: deploy_keys.yml
-  when: "ceph_fsid"
+  when: "ceph_fsid is defined"
 
 - name: Force handler execution
   ansible.builtin.meta: flush_handlers
-  when: "ceph_fsid"
+  when: "ceph_fsid is defined"
 
 - name: Configure ceph mon
   ansible.builtin.import_tasks: mon.yml
-  when: "ceph_fsid"
+  when: "ceph_fsid is defined"
 
 - name: Force handler execution
   ansible.builtin.meta: flush_handlers
-  when: "ceph_fsid"
+  when: "ceph_fsid is defined"
 
 - name: Configure ceph osd
   ansible.builtin.import_tasks: osd.yml
-  when: "ceph_fsid"
+  when: "ceph_fsid is defined"
 
 - name: Configure ceph mgr
   ansible.builtin.import_tasks: mgr.yml
-  when: "ceph_fsid"
+  when: "ceph_fsid is defined"
 
 - name: Configure ceph mds
   ansible.builtin.import_tasks: mds.yml
-  when: "ceph_fsid"
+  when: "ceph_fsid is defined"
 
 - name: Configure ceph rgw
   ansible.builtin.import_tasks: rgw.yml
-  when: "ceph_fsid"
+  when: "ceph_fsid is defined"
 
 - name: Configure ceph rbd-mirror
   ansible.builtin.import_tasks: rdb_mirror.yml
-  when: "ceph_fsid"
+  when: "ceph_fsid is defined"
