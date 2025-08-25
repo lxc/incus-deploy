@@ -8,9 +8,9 @@
   when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_distribution in ("Ubuntu", "Debian")'
 
 - name: Add Zabbly repository key
-  ansible.builtin.copy:
-    src: zabbly.asc
-    dest: /etc/apt/keyrings/ansible-zabbly.asc
+  ansible.builtin.get_url:
+    url: "https://pkgs.zabbly.com/key.asc"
+    dest: "/etc/apt/keyrings/ansible-zabbly.asc"
     mode: "0644"
   notify: Update apt
   when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_distribution in ("Ubuntu", "Debian")'
