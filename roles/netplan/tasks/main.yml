@@ -4,10 +4,10 @@
   delegate_to: localhost
   ansible.builtin.stat:
     path: "{{ netplan_config_dir }}/{{ inventory_hostname }}.yaml"
-  register: main_file
+  register: netplan_main_file
   notify:
     - Ensure netplan is installed
     - Remove existing configuration
     - Transfer netplan configuration
-  changed_when: main_file.stat.exists
+  changed_when: netplan_main_file.stat.exists
   when: 'ansible_distribution in ("Ubuntu", "Debian")'

@@ -17,7 +17,7 @@
 
 - name: Get DPKG architecture
   ansible.builtin.command: dpkg --print-architecture
-  register: dpkg_architecture
+  register: ovn_dpkg_architecture
   changed_when: false
   check_mode: false
   when: 'ovn_roles|length > 0 and ovn_release != "distro"'

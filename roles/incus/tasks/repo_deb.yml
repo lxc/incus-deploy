@@ -17,7 +17,7 @@
 
 - name: Get DPKG architecture
   ansible.builtin.command: dpkg --print-architecture
-  register: dpkg_architecture
+  register: incus_dpkg_architecture
   changed_when: false
   check_mode: false
   when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_distribution in ("Ubuntu", "Debian")'
