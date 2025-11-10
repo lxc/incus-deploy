@@ -3,7 +3,7 @@
 - name: Create cluster directory
   delegate_to: 127.0.0.1
   ansible.builtin.file:
-    path: "{{ ovn_config_dir }}/{{ ovn_name }}"
+    path: "{{ ovn_config_dir }}"
     mode: "0755"
     state: directory
   throttle: 1
