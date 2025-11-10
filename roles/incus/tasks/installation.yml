@@ -206,6 +206,7 @@
   loop: "{{ ansible_play_hosts }}"
   register: incus_register_linstor_controller
   when: >-
+    "linstor" in incus_init["storage"] | dict2items | json_query('[].value.driver') and
     "controller" in hostvars[item]["ansible_facts"]["linstor_roles"] and
     ansible_distribution == "Ubuntu" and
     ansible_distribution_release != "focal"
