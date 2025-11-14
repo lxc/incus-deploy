@@ -1,12 +1,12 @@
 - name: List satellite nodes
   ansible.builtin.command: linstor --machine-readable node list
-  register: satellite_nodes_output
+  register: linstor_satellite_nodes_output
   changed_when: false
   when: '"controller" in linstor_roles'
 
 - name: Parse satellite node names
   ansible.builtin.set_fact:
-    existing_satellite_nodes: "{{ satellite_nodes_output.stdout | from_json | json_query('[].name') }}"
+    linstor_existing_satellite_nodes: "{{ linstor_satellite_nodes_output.stdout | from_json | json_query('[].name') }}"
   when: '"controller" in linstor_roles'
 
 - name: Add controller node
@@ -14,25 +14,25 @@
     linstor node create {{ item }}
     {{ hostvars[item].ansible_facts.default_ipv6.address | default(hostvars[item].ansible_facts.default_ipv4.address) }}
     --node-type combined
-  register: create_node_output
+  register: linstor_create_node_output
   loop: "{{ ansible_play_hosts }}"
   when: >-
     ("controller" in linstor_roles) and
     ("satellite" in hostvars[item]["ansible_facts"]["linstor_roles"]) and
     (item == inventory_hostname) and
-    (item not in existing_satellite_nodes)
-  changed_when: "create_node_output.rc == 0"
+    (item not in linstor_existing_satellite_nodes)
+  changed_when: "linstor_create_node_output.rc == 0"
 
 - name: Add satellite nodes
   ansible.builtin.command: >-
     linstor node create {{ item }}
     {{ hostvars[item].ansible_facts.default_ipv6.address | default(hostvars[item].ansible_facts.default_ipv4.address) }}
     --node-type satellite
-  register: create_node_output
+  register: linstor_create_node_output
   loop: "{{ ansible_play_hosts }}"
   when: >-
     ("controller" in linstor_roles) and
     ("satellite" in hostvars[item]["ansible_facts"]["linstor_roles"]) and
     (item != inventory_hostname) and
-    (item not in existing_satellite_nodes)
-  changed_when: "create_node_output.rc == 0"
+    (item not in linstor_existing_satellite_nodes)
+  changed_when: "linstor_create_node_output.rc == 0"

@@ -28,7 +28,7 @@
   delegate_to: 127.0.0.1
   community.crypto.openssl_privatekey:
     path: "{{ ovn_config_dir }}/{{ item }}.key"
-  register: client_key
+  register: ovn_client_key
   notify: Create client signing request
   when: 'ovn_roles | length > 0'
   loop: "{{ ovn_clients }}"

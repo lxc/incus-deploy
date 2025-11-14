@@ -1,6 +1,3 @@
 provider "incus" {
-  remote {
-    name    = var.incus_remote
-    default = true
-  }
+  default_remote = var.incus_remote
 }

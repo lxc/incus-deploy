@@ -1,21 +1,21 @@
 - name: Check for existing VGs
   ansible.builtin.command: "vgs {{ item }}"
-  register: check
+  register: lvmcluster_check
   loop: "{{ lvmcluster_vgs.keys() }}"
   run_once: true
   changed_when: false
-  failed_when: "check.rc not in (0, 5)"
+  failed_when: "lvmcluster_check.rc not in (0, 5)"
 
 - name: Create the VG (first server)
   ansible.builtin.command: "vgcreate --shared {{ item.item }} {{ lvmcluster_vgs[item.item] }} --metadatasize={{ lvmcluster_metadata_size }}"
   when: "item.rc == 5"
-  loop: "{{ check.results }}"
+  loop: "{{ lvmcluster_check.results }}"
   run_once: true
-  register: create
-  changed_when: "create.rc == 0"
+  register: lvmcluster_create
+  changed_when: "lvmcluster_create.rc == 0"
 
 - name: Ensure lock manager is running
   ansible.builtin.command: "vgchange --lock-start"
-  register: vgchange
-  changed_when: "vgchange.rc == 0"
+  register: lvmcluster_vgchange
+  changed_when: "lvmcluster_vgchange.rc == 0"
   when: 'lvmcluster_name'

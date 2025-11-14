@@ -7,25 +7,25 @@
     group: ceph
     mode: "0770"
     state: directory
-  register: deploy_rgw
+  register: ceph_deploy_rgw
   when: '"rgw" in ceph_roles'
 
 - name: Create Ceph rgw keyring
   delegate_to: "{{ lookup('template', 'ceph.monitors.names.j2') | from_yaml | first }}"
   ansible.builtin.command:
     cmd: ceph auth get-or-create client.rgw.{{ inventory_hostname_short }} mon 'allow rw' osd 'allow rwx'
-  register: rgw_keyring
-  when: '"rgw" in ceph_roles and deploy_rgw.changed'
+  register: ceph_rgw_keyring
+  when: '"rgw" in ceph_roles and ceph_deploy_rgw.changed'
   changed_when: true
 
 - name: Transfer rgw keyring
   ansible.builtin.copy:
-    content: "{{ rgw_keyring.stdout }}\n"
+    content: "{{ ceph_rgw_keyring.stdout }}\n"
     dest: "/var/lib/ceph/radosgw/ceph-rgw.{{ inventory_hostname_short }}/keyring"
     owner: ceph
     group: ceph
     mode: "0660"
-  when: '"rgw" in ceph_roles and deploy_rgw.changed'
+  when: '"rgw" in ceph_roles and ceph_deploy_rgw.changed'
 
 - name: Enable ceph rgw
   ansible.builtin.systemd:

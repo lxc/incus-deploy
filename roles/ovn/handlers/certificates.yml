@@ -54,7 +54,7 @@
     use_common_name_for_san: false
   register: client_csr
   notify: Issue client certificate
-  loop: "{{ client_key.results }}"
+  loop: "{{ ovn_client_key.results }}"
 
 - name: Issue client certificate
   delegate_to: 127.0.0.1

@@ -14,7 +14,7 @@
       cluster:
         enabled: true
         cluster_address: "{{ incus_ip_address_or_default }}"
-        cluster_token: "{{ cluster_add.stdout }}"
+        cluster_token: "{{ incus_cluster_add.stdout }}"
         server_address: "{{ incus_ip_address_or_default }}"
         member_config:{%- for pool in incus_init.storage %}
       {%- for key in incus_init.storage[pool].local_config | default([]) %}
