@@ -9,7 +9,7 @@
 - name: Create the VG (first server)
   ansible.builtin.command: "vgcreate --shared {{ item.item }} {{ lvmcluster_vgs[item.item] }} --metadatasize={{ lvmcluster_metadata_size }}"
   when: "item.rc == 5"
-  loop: "{{ check.results }}"
+  loop: "{{ lvmcluster_check.results }}"
   run_once: true
   register: lvmcluster_create
   changed_when: "lvmcluster_create.rc == 0"
