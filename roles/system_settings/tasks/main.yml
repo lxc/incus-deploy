@@ -10,6 +10,7 @@
     - { name: "fs.inotify.max_queued_events", value: "1048576"}
     - { name: "fs.inotify.max_user_instances", value: "1048576"}
     - { name: "fs.inotify.max_user_watches", value: "1048576"}
+    - { name: "kernel.dmesg_restrict", value: "1"}
     - { name: "kernel.keys.maxbytes", value: "2000000"}
     - { name: "kernel.keys.maxkeys", value: "2000"}
     - { name: "net.core.bpf_jit_limit", value: "1000000000"}
