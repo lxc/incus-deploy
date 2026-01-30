@@ -145,7 +145,7 @@
 - name: Add networks
   ansible.builtin.command: >-
     incus network create {{ item.key }} --type={{ item.value.type }}
-    {% for k in item.value.local_config | default([]) %}{{ k }}={{ item.value.local_config[k] }}{% endfor %}
+    {% for k in item.value.local_config | default([]) %} {{ k }}={{ item.value.local_config[k] }}{% endfor %}
     {% for k in item.value.config | default([]) %} {{ k }}={{ item.value.config[k] }}{% endfor %}
   loop: "{{ incus_init['network'] | dict2items }}"
   when: >-
