@@ -5,5 +5,5 @@
     mode: "0755"
     state: directory
   throttle: 1
-  when: lvmcluster_name | length > 0
+  when: 'lvmcluster_name | length > 0'
   notify: Create cluster host_id tracking
