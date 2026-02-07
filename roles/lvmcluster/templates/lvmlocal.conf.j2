@@ -6,7 +6,7 @@ global {
 	use_lvmlockd = 1
 }
 
-{%- if ansible_distribution in ("CentOS", "Debian", "Ubuntu") and ansible_distribution_release not in ("jammy", "focal") %}
+{%- if ansible_facts["distribution"] in ("CentOS", "Debian", "Ubuntu") and ansible_facts["distribution_release"] not in ("jammy", "focal") %}
 devices {
 	use_devicesfile = 0
 }

@@ -8,7 +8,7 @@
   tasks:
     - name: Check if distribution is supported
       ansible.builtin.meta: end_play
-      when: 'ansible_distribution not in ("Ubuntu", "Debian")'
+      when: 'ansible_facts["distribution"] not in ("Ubuntu", "Debian")'
 
     - name: Update apt repo and cache on all Debian/Ubuntu boxes
       ansible.builtin.apt:

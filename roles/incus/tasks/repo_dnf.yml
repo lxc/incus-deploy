@@ -5,4 +5,4 @@
     chroot: "epel-9-x86_64"
     name: "neil/incus"
     state: enabled
-  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_distribution == "CentOS"'
+  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_facts["distribution"] == "CentOS"'

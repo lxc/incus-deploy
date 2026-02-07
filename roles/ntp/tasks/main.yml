@@ -4,7 +4,7 @@
   ansible.builtin.dnf:
     name: epel-release
     state: present
-  when: 'ansible_distribution == "CentOS"'
+  when: 'ansible_facts["distribution"] == "CentOS"'
 
 - name: Install systemd-timesyncd
   ansible.builtin.package:
