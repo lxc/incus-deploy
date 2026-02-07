@@ -1,6 +1,7 @@
 - name: Install the LVM packages
   ansible.builtin.package:
     name:
+      - btrfs-progs
       - lvm2
       - lvm2-lockd
       - sanlock
