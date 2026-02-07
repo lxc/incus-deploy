@@ -6,7 +6,7 @@
 {% endif %}
 {{ key }}: {{ value }}
 {% endfor %}
-{% for host in vars['ansible_play_hosts'] %}
+{% for host in ansible_play_hosts %}
 {% if not host in lvmcluster_host_ids %}
 {{ host }}: {{ ns.next }}
 {% set ns.next = ns.next + 1 %}

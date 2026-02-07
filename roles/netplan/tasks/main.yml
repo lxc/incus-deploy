@@ -10,4 +10,4 @@
     - Remove existing configuration
     - Transfer netplan configuration
   changed_when: netplan_main_file.stat.exists
-  when: 'ansible_distribution in ("Ubuntu", "Debian")'
+  when: 'ansible_facts["distribution"] in ("Ubuntu", "Debian")'

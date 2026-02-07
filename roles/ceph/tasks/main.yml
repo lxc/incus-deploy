@@ -14,11 +14,11 @@
 
 - name: Install debian repository
   ansible.builtin.import_tasks: repo_deb.yml
-  when: 'ansible_distribution in ("Ubuntu", "Debian")'
+  when: 'ansible_facts["distribution"] in ("Ubuntu", "Debian")'
 
 - name: Install centos repository
   ansible.builtin.import_tasks: repo_dnf.yml
-  when: 'ansible_distribution == "CentOS"'
+  when: 'ansible_facts["distribution"] == "CentOS"'
 
 - name: Force handler execution
   ansible.builtin.meta: flush_handlers

@@ -15,15 +15,15 @@
   roles:
     - role: lxc.incus.system_settings
     - role: lxc.incus.netplan
-      when: ansible_distribution in ("Ubuntu", "Debian")
+      when: ansible_facts['distribution'] in ("Ubuntu", "Debian")
     - role: lxc.incus.ntp
     - role: lxc.incus.nvme
     - role: lxc.incus.ceph
     - role: lxc.incus.linstor
-      when: ansible_distribution == "Ubuntu" and ansible_distribution_version in ("22.04", "24.04")
+      when: ansible_facts['distribution'] == "Ubuntu" and ansible_facts['distribution_version'] in ("22.04", "24.04")
     - role: lxc.incus.lvmcluster
     - role: lxc.incus.ovn
-      when: ansible_distribution in ("Ubuntu", "Debian")
+      when: ansible_facts['distribution'] in ("Ubuntu", "Debian")
     - role: lxc.incus.incus
 
 - name: Run late playbook after incus installation
