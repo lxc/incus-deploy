@@ -13,7 +13,7 @@ public_network = {{ ceph_network_public }}
 private_network = {{ ceph_network_private }}
 {% endif %}
 auth allow insecure global id reclaim = false
-{% if ansible_default_ipv6['address'] | default("") %}
+{% if ansible_facts['default_ipv6']['address'] | default("") %}
 ms bind ipv6 = true
 ms bind ipv4 = false
 {% else %}

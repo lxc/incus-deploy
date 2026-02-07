@@ -7,7 +7,7 @@
     install_recommends: false
     state: present
   register: incus_install_deb
-  when: 'ansible_distribution in ("Debian", "Ubuntu") and incus_roles | length > 0'
+  when: 'ansible_facts["distribution"] in ("Debian", "Ubuntu") and incus_roles | length > 0'
 
 - name: Install the Incus package (rpm)
   ansible.builtin.package:
@@ -15,7 +15,7 @@
       - incus
     state: present
   register: incus_install_rpm
-  when: 'ansible_distribution == "CentOS" and incus_roles | length > 0'
+  when: 'ansible_facts["distribution"] == "CentOS" and incus_roles | length > 0'
 
 - name: Install the Incus UI package (deb)
   ansible.builtin.apt:
@@ -23,7 +23,7 @@
       - incus-ui-canonical
     install_recommends: false
     state: present
-  when: 'ansible_distribution in ("Debian", "Ubuntu") and "ui" in incus_roles'
+  when: 'ansible_facts["distribution"] in ("Debian", "Ubuntu") and "ui" in incus_roles'
 
 - name: Install btrfs tools
   ansible.builtin.package:
@@ -54,7 +54,7 @@
   failed_when: "incus_linux_image_version.rc != 0"
   when: >-
     incus_roles | length > 0 and 'zfs' in incus_init['storage'] |
-    dict2items | json_query('[].value.driver') and ansible_distribution == 'Debian'
+    dict2items | json_query('[].value.driver') and ansible_facts['distribution'] == 'Debian'
 
 - name: Install linux image headers
   ansible.builtin.apt:
@@ -64,7 +64,7 @@
   loop: "{{ incus_linux_image_version.stdout_lines | default([]) | select('search', 'linux-image-[0-9]+.*/.*') }}"
   when: >-
     incus_roles | length > 0 and 'zfs' in incus_init['storage'] |
-    dict2items | json_query('[].value.driver') and ansible_distribution == 'Debian'
+    dict2items | json_query('[].value.driver') and ansible_facts['distribution'] == 'Debian'
 
 - name: Install ZFS dependencies
   ansible.builtin.package:
@@ -73,7 +73,7 @@
     state: present
   when: >-
     incus_roles | length > 0 and 'zfs' in incus_init['storage'] |
-    dict2items | json_query('[].value.driver') and ansible_distribution == 'Debian'
+    dict2items | json_query('[].value.driver') and ansible_facts['distribution'] == 'Debian'
 
 - name: Install ZFS tools
   ansible.builtin.package:
@@ -84,12 +84,12 @@
 
 - name: Set uid allocation
   ansible.builtin.command: "usermod root --add-subuids 10000000-1009999999"
-  when: '(incus_install_deb.changed or incus_install_rpm.changed) and ansible_distribution == "CentOS"'
+  when: '(incus_install_deb.changed or incus_install_rpm.changed) and ansible_facts["distribution"] == "CentOS"'
   changed_when: true
 
 - name: Set gid allocation
   ansible.builtin.command: "usermod root --add-subgids 10000000-1009999999"
-  when: '(incus_install_deb.changed or incus_install_rpm.changed) and ansible_distribution == "CentOS"'
+  when: '(incus_install_deb.changed or incus_install_rpm.changed) and ansible_facts["distribution"]  == "CentOS"'
   changed_when: true
 
 - name: Enable incus socket unit
@@ -138,7 +138,7 @@
   notify: Restart Incus
   when: >-
     (incus_install_deb.changed or incus_install_rpm.changed) and
-    incus_ovn_northbound and
+    (incus_ovn_northbound | default([]) | length > 0) and
     ("standalone" in incus_roles or ("cluster" in incus_roles and incus_servers[0] == inventory_hostname))
   changed_when: true
 
@@ -208,21 +208,29 @@
   when: >-
     "linstor" in incus_init["storage"] | dict2items | json_query('[].value.driver') and
     "controller" in hostvars[item]["ansible_facts"]["linstor_roles"] and
-    ansible_distribution == "Ubuntu" and
-    ansible_distribution_release != "focal"
+    ansible_facts["distribution"] == "Ubuntu" and
+    ansible_facts["distribution_release"] != "focal"
   changed_when: "incus_register_linstor_controller.rc == 0"
 
 - name: Bootstrap the cluster
   ansible.builtin.command: "incus --force-local cluster enable {{ inventory_hostname }}"
-  when: '(incus_install_deb.changed or incus_install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] == inventory_hostname'
+  when: >-
+    (incus_servers | default([]) | length > 0) and
+    (incus_install_deb.changed or incus_install_rpm.changed) and
+    "cluster" in incus_roles and
+    incus_servers[0] == inventory_hostname
   changed_when: true
 
 - name: Create join tokens
-  delegate_to: "{{ incus_servers[0] }}"
+  delegate_to: "{{ (incus_servers | default([]) | length > 0) | ternary(incus_servers[0], 'localhost') }}"
   ansible.builtin.command: "incus --force-local --quiet cluster add {{ inventory_hostname }}"
   register: incus_cluster_add
   notify:
     - Wait 5s to avoid token use before valid
     - Join the cluster
-  when: '(incus_install_deb.changed or incus_install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] != inventory_hostname'
+  when: >-
+    (incus_servers | default([]) | length > 0) and
+    (incus_install_deb.changed or incus_install_rpm.changed) and
+    "cluster" in incus_roles and
+    incus_servers[0] != inventory_hostname
   changed_when: true

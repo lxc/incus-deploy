@@ -5,7 +5,7 @@
     path: /etc/apt/keyrings/
     mode: "0755"
     state: directory
-  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_distribution in ("Ubuntu", "Debian")'
+  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_facts["distribution"] in ("Ubuntu", "Debian")'
 
 - name: Add Zabbly repository key
   ansible.builtin.get_url:
@@ -13,14 +13,14 @@
     dest: "/etc/apt/keyrings/ansible-zabbly.asc"
     mode: "0644"
   notify: Update apt
-  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_distribution in ("Ubuntu", "Debian")'
+  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_facts["distribution"] in ("Ubuntu", "Debian")'
 
 - name: Get DPKG architecture
   ansible.builtin.command: dpkg --print-architecture
   register: incus_dpkg_architecture
   changed_when: false
   check_mode: false
-  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_distribution in ("Ubuntu", "Debian")'
+  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_facts["distribution"] in ("Ubuntu", "Debian")'
 
 - name: Add Zabbly package source
   ansible.builtin.template:
@@ -28,7 +28,7 @@
     dest: /etc/apt/sources.list.d/ansible-zabbly-incus-{{ incus_release }}.sources
     mode: "0644"
   notify: Update apt
-  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_distribution in ("Ubuntu", "Debian")'
+  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_facts["distribution"] in ("Ubuntu", "Debian")'
 
 - name: Force the handler executions
   ansible.builtin.meta: flush_handlers
