@@ -1,34 +1,33 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
-- name: Create apt keyring path
-  ansible.builtin.file:
-    path: /etc/apt/keyrings/
-    mode: "0755"
-    state: directory
+- name: Add Zabbly repository
   when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_facts["distribution"] in ("Ubuntu", "Debian")'
+  block:
+    - name: Create apt keyring path
+      ansible.builtin.file:
+        path: /etc/apt/keyrings/
+        mode: "0755"
+        state: directory
 
-- name: Add Zabbly repository key
-  ansible.builtin.get_url:
-    url: "https://pkgs.zabbly.com/key.asc"
-    dest: "/etc/apt/keyrings/ansible-zabbly.asc"
-    mode: "0644"
-  notify: Update apt
-  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_facts["distribution"] in ("Ubuntu", "Debian")'
+    - name: Add Zabbly repository key
+      ansible.builtin.get_url:
+        url: "https://pkgs.zabbly.com/key.asc"
+        dest: "/etc/apt/keyrings/ansible-zabbly.asc"
+        mode: "0644"
+      notify: Update apt
 
-- name: Get DPKG architecture
-  ansible.builtin.command: dpkg --print-architecture
-  register: incus_dpkg_architecture
-  changed_when: false
-  check_mode: false
-  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_facts["distribution"] in ("Ubuntu", "Debian")'
+    - name: Get DPKG architecture
+      ansible.builtin.command: dpkg --print-architecture
+      register: incus_dpkg_architecture
+      changed_when: false
+      check_mode: false
 
-- name: Add Zabbly package source
-  ansible.builtin.template:
-    src: incus.sources.j2
-    dest: /etc/apt/sources.list.d/ansible-zabbly-incus-{{ incus_release }}.sources
-    mode: "0644"
-  notify: Update apt
-  when: 'incus_roles|length > 0 and incus_release != "distro" and ansible_facts["distribution"] in ("Ubuntu", "Debian")'
+    - name: Add Zabbly package source
+      ansible.builtin.template:
+        src: incus.sources.j2
+        dest: /etc/apt/sources.list.d/ansible-zabbly-incus-{{ incus_release }}.sources
+        mode: "0644"
+      notify: Update apt
 
 - name: Force the handler executions
   ansible.builtin.meta: flush_handlers

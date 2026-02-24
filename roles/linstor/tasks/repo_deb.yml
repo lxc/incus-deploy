@@ -1,31 +1,30 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
-- name: Create apt keyring path
-  ansible.builtin.file:
-    path: /etc/apt/keyrings/
-    mode: "0755"
-    state: directory
+- name: Add Debian repository
   when: 'linstor_roles|length > 0'
+  block:
+    - name: Create apt keyring path
+      ansible.builtin.file:
+        path: /etc/apt/keyrings/
+        mode: "0755"
+        state: directory
 
-- name: Add PPA GPG key
-  ansible.builtin.copy:
-    src: linstor-ppa.asc
-    dest: /etc/apt/keyrings/ansible-linstor-ppa.asc
-    mode: "0644"
-  notify: Update apt
-  when: 'linstor_roles|length > 0'
+    - name: Add PPA GPG key
+      ansible.builtin.copy:
+        src: linstor-ppa.asc
+        dest: /etc/apt/keyrings/ansible-linstor-ppa.asc
+        mode: "0644"
+      notify: Update apt
 
-- name: Get DPKG architecture
-  ansible.builtin.command: dpkg --print-architecture
-  register: linstor_dpkg_architecture
-  changed_when: false
-  check_mode: false
-  when: 'linstor_roles|length > 0'
+    - name: Get DPKG architecture
+      ansible.builtin.command: dpkg --print-architecture
+      register: linstor_dpkg_architecture
+      changed_when: false
+      check_mode: false
 
-- name: Add Linstor PPA package source
-  ansible.builtin.template:
-    src: linstor-ppa.sources.j2
-    dest: /etc/apt/sources.list.d/ansible-linstor-ppa.sources
-    mode: "0644"
-  notify: Update apt
-  when: 'linstor_roles|length > 0'
+    - name: Add Linstor PPA package source
+      ansible.builtin.template:
+        src: linstor-ppa.sources.j2
+        dest: /etc/apt/sources.list.d/ansible-linstor-ppa.sources
+        mode: "0644"
+      notify: Update apt
