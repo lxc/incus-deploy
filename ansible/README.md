@@ -23,6 +23,7 @@
    - `rgw`: A RADOS (object) Gateway, used to expose an S3 API on top of Ceph objects
 
 ## Incus
+ - `incus_cluster_ip_address`: Override for the server's cluster IP address (type: string, default: value of `incus_ip_address`)
  - `incus_name`: Name identifier for the deployment (**required**, type: string)
  - `incus_init`: Initial configuration data (type: dict)
    - `config`: Dict of config keys
