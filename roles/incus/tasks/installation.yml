@@ -124,7 +124,7 @@
   changed_when: true
 
 - name: Set cluster listen address
-  ansible.builtin.command: "incus --force-local config set cluster.https_address {{ incus_ip_address_or_default }}"
+  ansible.builtin.command: "incus --force-local config set cluster.https_address {{ incus_cluster_ip_address | default(incus_ip_address_or_default) }}"
   when: '(incus_install_deb.changed or incus_install_rpm.changed) and "cluster" in incus_roles and incus_servers[0] == inventory_hostname'
   changed_when: true
 
