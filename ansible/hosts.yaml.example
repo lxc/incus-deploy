@@ -31,6 +31,10 @@ all:
           - osd
 
         incus_init:
+          config:
+            user.ui.title: "My cluster"
+          local_config:
+            core.dns_address: ":8553"
           network:
             LOCAL:
               type: macvlan
