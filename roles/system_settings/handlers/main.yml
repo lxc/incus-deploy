@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+---
+# sysctl -p applies a single file, ignoring sysctl.d precedence.
+- name: Apply sysctl
+  ansible.builtin.command: sysctl --system
+  changed_when: true
