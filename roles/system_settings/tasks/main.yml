@@ -5,8 +5,10 @@
     name: "{{ item.name }}"
     value: "{{ item.value }}"
     sysctl_file: /etc/sysctl.d/50-incus-deploy.conf
+    reload: false
     state: present
   loop: "{{ system_settings_sysctl }}"
+  notify: Apply sysctl
 
 # Earlier versions wrote these to /etc/sysctl.conf, which is read after sysctl.d.
 - name: Incus drop sysctl from /etc/sysctl.conf
@@ -16,6 +18,10 @@
     reload: false
     state: absent
   loop: "{{ system_settings_sysctl }}"
+  notify: Apply sysctl
+
+- name: Apply pending sysctl changes
+  ansible.builtin.meta: flush_handlers
 
 - name: Incus PAM limits
   community.general.pam_limits:
