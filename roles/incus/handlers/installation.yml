@@ -41,6 +41,11 @@
   loop: "{{ incus_init['config'] | default({}) | dict2items }}"
   changed_when: true
 
+- name: Apply additional node specific configuration
+  ansible.builtin.command: "incus config set {{ item.key }}=\"{{ item.value }}\""
+  loop: "{{ incus_init['local_config'] | default({}) | dict2items }}"
+  changed_when: true
+
 - name: Load client certificates
   ansible.builtin.command:
     cmd: "incus config trust add-certificate --name \"{{ item.key }}\" --type={{ item.value.type | default('client') }} -"

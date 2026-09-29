@@ -27,6 +27,7 @@
  - `incus_name`: Name identifier for the deployment (**required**, type: string)
  - `incus_init`: Initial configuration data (type: dict)
    - `config`: Dict of config keys
+   - `local_config`: Dict of config key for node individual configuration
    - `clients`: Dict of client certificates to trust
      - `type`: Type of certificate, typically `client` or `metrics` (**required**, type: string)
      - `certificate`: PEM encoded certificate (**required**, type: string)
